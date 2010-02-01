@@ -26,6 +26,7 @@ requires 'File::Copy';
 requires 'Path::Class';
 requires 'RPM::Spec';
 requires 'YAML::Tiny';
+requires 'Module::Pluggable::Ordered';
 
 test_requires 'Test::More';
 

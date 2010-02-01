@@ -22,7 +22,7 @@ use warnings;
 
 use autodie qw{ system };
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 #############################################################################
 # order
@@ -30,7 +30,17 @@ our $VERSION = '0.001';
 sub _order { 15 }
 
 #############################################################################
-# event: perl_update 
+# event: perl_spec_prep
+
+sub perl_spec_prep_order { 15 }
+
+sub perl_spec_prep {
+
+
+}
+
+#############################################################################
+# event: perl_spec_update 
 
 sub perl_spec_update_order { 15 }
 

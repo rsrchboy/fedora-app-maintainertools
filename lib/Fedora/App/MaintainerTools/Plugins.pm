@@ -17,7 +17,7 @@
 
 package Fedora::App::MaintainerTools::Plugins;
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 use Module::Pluggable::Ordered 
     search_path => [ 'Fedora::App::MaintainerTools::Plugin' ];

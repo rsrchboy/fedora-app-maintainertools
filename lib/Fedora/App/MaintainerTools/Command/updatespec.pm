@@ -25,7 +25,7 @@ use Fedora::App::MaintainerTools::UpdateData;
 
 #use namespace::clean -except => 'meta';
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 sub run {
     my ($self, $opt, $args) = @_;

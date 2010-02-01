@@ -23,11 +23,12 @@ use MooseX::AttributeHelpers;
 use MooseX::Types::Path::Class ':all';
 
 use Path::Class;
+use JSON;
 use YAML::Tiny;
 
 use namespace::clean -except => 'meta';
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 # debugging
 #use Smart::Comments '###', '####';
@@ -35,13 +36,27 @@ our $VERSION = '0.001';
 has module => (is => 'rw', required => 1, isa => 'CPANPLUS::Module');
 
 # FIXME -- we should check to make sure we're supported, etc, etc
-has _meta => (is => 'ro', isa => 'YAML::Tiny', lazy_build => 1);
+#has _meta => (is => 'ro', isa => 'YAML::Tiny', lazy_build => 1);
+#has _meta => (is => 'ro', isa => 'ArrayRef[HashRef]|YAML::Tiny', lazy_build => 1);
+has _meta => (is => 'ro', lazy_build => 1);
 
-sub _build__meta { 
+sub _build__meta {
     my $self = shift @_;
 
     $self->module->fetch;
-    YAML::Tiny->read(file($self->module->extract, 'META.yml'));
+    my $meta_file = file $self->module->extract, 'META.yml';
+    #YAML::Tiny->read(file($self->module->extract, 'META.yml'));
+    my $m;
+    local $@;
+    eval { $m = YAML::Tiny->read(file($self->module->extract, 'META.yml'))     };
+    warn "Eval error (yaml::tiny): $@" if $@;
+    #return $m if defined $m;
+    return $m unless $@;
+    eval { $m = from_json(file($self->module->extract, 'META.yml')->slurp) };
+
+    # FIXME we really should just drop the indexing above.  sigh.
+    return [ $m ] if defined $m;
+    die "Eval error reading META: $@";
 }
 
 # simple
@@ -62,15 +77,15 @@ has _rpm_build_requires => (
     provides => {
         #'' => '_rpm_build_requires',
         'count'  => 'num_rpm_build_requires',
-        'empty'  => 'has_rpm_build_requires',
+        'empty'  => 'has_any_rpm_build_requires',
+        'exists' => 'has_rpm_br_on',
         'keys'   => 'rpm_build_requires',
         'get'    => 'rpm_build_require_version',
         'kv'     => 'rpm_build_requires_kv_pairs',
-        'exists' => 'does_rpm_build_require',
     },
 );
 
-sub _build__rpm_build_requires { 
+sub _build__rpm_build_requires {
     shift->_rpm_requires_from_meta_keys(
         qw(requires configure_requires build_requires)
     );
@@ -94,13 +109,13 @@ has _rpm_requires => (
     },
 );
 
-sub _build__rpm_requires { 
+sub _build__rpm_requires {
     shift->_rpm_requires_from_meta_keys('requires')
 }
 
 sub _rpm_requires_from_meta_keys {
     my $self = shift @_;
-    my @keys = @_; 
+    my @keys = @_;
 
     my %req = ();
     BR_LOOP:
@@ -132,7 +147,7 @@ CPAN::MetaMuncher - Digest a META.yml
 
     use CPAN::MetaMuncher;
 
-    # ... 
+    # ...
     my $mm = CPAN::MetaMuncher->new(module => $cpanplus_module);
 
 
@@ -166,7 +181,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the 
+License along with this library; if not, write to the
 
     Free Software Foundation, Inc.
     59 Temple Place, Suite 330

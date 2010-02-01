@@ -1,5 +1,8 @@
 Revision history for Fedora-App-MaintainerTools
 
-0.01    Date/time
-        First version, released on an unsuspecting world.
+0.002
+- add missing Module::Pluggable::Ordered dep
+
+0.001 Wed Jun 17 00:29:01 PDT 2009
+- First version, released on an unsuspecting world.
 

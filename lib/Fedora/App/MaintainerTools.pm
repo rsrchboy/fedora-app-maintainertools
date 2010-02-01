@@ -24,7 +24,7 @@ use Fedora::App::MaintainerTools::Plugins;
 
 use namespace::clean -except => 'meta';
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 extends 'MooseX::App::Cmd';
 with 'MooseX::Log::Log4perl';

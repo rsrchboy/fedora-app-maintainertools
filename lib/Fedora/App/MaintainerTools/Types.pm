@@ -22,7 +22,7 @@ use MooseX::Types::Moose ':all';
 
 use namespace::clean -except => [ 'meta', 'CPBackend', 'CPModule' ];
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 subtype CPBackend,
     as Object,
