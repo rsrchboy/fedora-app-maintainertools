@@ -28,7 +28,10 @@ our $VERSION = '0.002';
 sub run {
     my ($self, $opt, $args) = @_;
 
-    $app->log->info('Beginning updatespec run.');
+    $self->app->log->info('Beginning updatespec run.');
+
+    # first, make sure Fedora::Bodhi is loaded
+    Class::MOP::load_class('Fedora::Bodhi');
 
     return;
 }
