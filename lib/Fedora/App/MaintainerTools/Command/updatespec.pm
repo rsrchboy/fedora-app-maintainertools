@@ -30,7 +30,7 @@ our $VERSION = '0.002';
 sub run {
     my ($self, $opt, $args) = @_;
 
-    $app->log->info('Beginning updatespec run.'); 
+    $self->app->log->info('Beginning updatespec run.');
 
     for my $pkg (@$args) {
 
