@@ -30,7 +30,7 @@ our $VERSION = '0.002';
 sub _order { 90 }
 
 #############################################################################
-# event: perl_spec_update 
+# event: perl_spec_update
 
 sub perl_spec_update_order { 90 }
 
@@ -44,16 +44,19 @@ sub perl_spec_update {
     #if (-e 'Makefile') {
     if (0) {
 
-        warn "Copying new tarball over...\n";
-        my $tarball = file($m->status->fetch)->basename;
+        die "We're broken, and haven't been fixed yet!";
+
+        # FIXME
+        #warn "Copying new tarball over...\n";
+        #my $tarball = file($m->status->fetch)->basename;
         #my $cmd = "cd $pwd && make new-source FILES=" . $to->basename . ' 1>&2';
-        my $cmd = "cd $pwd && make new-source FILES=$tarball 1>&2";
-        warn "executing: $cmd\n";
-        system $cmd; 
+        #my $cmd = "cd $pwd && make new-source FILES=$tarball 1>&2";
+        #warn "executing: $cmd\n";
+        #system $cmd;
     }
 
     return;
-}    
+}
 
 
 1;
@@ -96,7 +99,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the 
+License along with this library; if not, write to the
 
     Free Software Foundation, Inc.
     59 Temple Place, Suite 330

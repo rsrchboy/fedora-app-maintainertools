@@ -55,7 +55,7 @@ sub perl_spec_update {
     $data->add_changelog(@cl);
 
     # fetch and copy tarball...
-    $data->log->debug('Fetching and copying new tarball over')
+    $data->log->debug('Fetching and copying new tarball over');
     my $pwd = dir->absolute; 
     my $from = file $data->module->status->fetch; # we've already fetched
     my $to   = file $pwd, $from->basename;
