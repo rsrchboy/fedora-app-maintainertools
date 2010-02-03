@@ -15,11 +15,11 @@
 #
 #############################################################################
 
-package Fedora::App::MaintainerTools::Command::updatespec; 
+package Fedora::App::MaintainerTools::Command::updatespec;
 
 use Moose;
 
-extends 'MooseX::App::Cmd::Command'; 
+extends 'MooseX::App::Cmd::Command';
 
 use Fedora::App::MaintainerTools::UpdateData;
 
@@ -30,7 +30,7 @@ our $VERSION = '0.002';
 sub run {
     my ($self, $opt, $args) = @_;
 
-    $app->log->info('Beginning updatespec run.'); 
+    $app->log->info('Beginning updatespec run.');
 
     for my $pkg (@$args) {
 
@@ -84,7 +84,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the 
+License along with this library; if not, write to the
 
     Free Software Foundation, Inc.
     59 Temple Place, Suite 330
