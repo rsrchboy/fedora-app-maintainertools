@@ -84,7 +84,7 @@ has changelog => (
     },
 );
 
-has _build_requires => (
+has _spec_build_requires => (
     metaclass => 'Collection::Hash',
 
     is         => 'ro',
@@ -101,7 +101,7 @@ has _build_requires => (
     },
 );
 
-sub _build__build_requires { shift->spec->_build_requires }
+sub _build__spec_build_requires { shift->spec->_build_requires }
 
 has _requires => (
     metaclass => 'Collection::Hash',
