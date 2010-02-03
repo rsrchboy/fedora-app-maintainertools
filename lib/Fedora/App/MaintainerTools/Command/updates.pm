@@ -15,15 +15,13 @@
 #
 #############################################################################
 
-package Fedora::App::MaintainerTools::Command::updatespec;
+package Fedora::App::MaintainerTools::Command::updates;
 
 use Moose;
-
-extends 'MooseX::App::Cmd::Command';
-
+use namespace::autoclean;
 use Fedora::App::MaintainerTools::UpdateData;
 
-#use namespace::clean -except => 'meta';
+extends 'MooseX::App::Cmd::Command';
 
 our $VERSION = '0.002';
 
@@ -31,17 +29,6 @@ sub run {
     my ($self, $opt, $args) = @_;
 
     $app->log->info('Beginning updatespec run.');
-
-    for my $pkg (@$args) {
-
-        my $data = Fedora::App::MaintainerTools::UpdateData->new(
-            spec  => RPM::Spec->new(specfile => "$pkg"),
-            cpanp => $self->app->cpanp,
-        );
-        $self->app->plugin_pkg->call_plugins('perl_spec_update', $data);
-
-        print join("\n", @{ $data->content });
-    }
 
     return;
 }
