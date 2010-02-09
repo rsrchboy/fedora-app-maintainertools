@@ -1,6 +1,6 @@
 #############################################################################
 #
-# Update a Perl RPM spec with the latest GA in the CPAN
+# Work with updates (typically Bodhi)
 #
 # Author:  Chris Weyl (cpan:RSRCHBOY), <cweyl@alumni.drew.edu>
 # Company: No company, personal work
@@ -17,25 +17,104 @@
 
 package Fedora::App::MaintainerTools::Command::updates;
 
+use 5.010;
+
 use Moose;
 use namespace::autoclean;
 use Fedora::App::MaintainerTools::UpdateData;
+use IO::Prompt;
 
 extends 'MooseX::App::Cmd::Command';
 
 our $VERSION = '0.002';
 
+my @CLASSES = qw{
+    Fedora::Bodhi
+    Text::SimpleTable
+    DateTime::Format::Pg
+    DateTime
+};
+
 sub run {
     my ($self, $opt, $args) = @_;
 
-    $self->app->log->info('Beginning updatespec run.');
+    #$self->app->log->info('Beginning updatespec run.');
 
-    # first, make sure Fedora::Bodhi is loaded
-    Class::MOP::load_class('Fedora::Bodhi');
+    Class::MOP::load_class($_) for @CLASSES;
+
+    my $push_date = DateTime->now->subtract( days => 5 );
+    my $b = Fedora::Bodhi->new;
+    my $list = $b->list(username => 'cweyl', status => 'testing');
+    my @updates = @{ $list->{updates} };
+
+    ### num updates in testing: scalar @updates
+
+    print to_table(@updates) . "\n";
+
+    print "Autopush parameters:\n" .
+        "\tkarma >= 0, push date older than 5 days ($push_date).\n\n";
+
+    if (prompt "Autopush? " => -YyNn1) {
+
+        print "\n";
+        _check_and_push($b, $push_date, $_) for @updates;
+    }
 
     return;
 }
 
+sub _check_and_push {
+    my ($b, $push_date, $update) =  @_;
+
+    return unless $update->{date_pushed};
+
+    my $push_dt =
+        DateTime::Format::Pg->parse_datetime($update->{date_pushed});
+
+    my $title = $update->{title};
+    my $karma = $update->{karma};
+
+    #print "$title (karma: $karma) $push_dt\n";
+
+    if ($karma >= 0 && $push_dt < $push_date) {
+
+        my $j = $b->_simple_request("request/stable/$title",
+            #user_name => 'YYYY', password => 'XXXX', login => 'Login',
+            #user_name => $b->userid, password => $b->passwd, login => 'Login',
+        );
+
+        say "PUSHED $update->{updateid}";
+    }
+}
+
+sub to_table {
+    my @updates = @_;
+
+    my $t = Text::SimpleTable->new(
+        [ 40, 'ID' ],
+        #[ 12, 'status' ],
+        [ 6, 'bugs' ],
+        #[ 40, 'builds' ],
+    );
+
+    #my $get = sub { my @v; push @v, $_->{$_[1]} for @{$u->{$_[0]}}; @v };
+
+    for my $u (@updates) {
+
+        my $get = sub { my @v; push @v, $_->{$_[1]} for @{$u->{$_[0]}}; @v };
+        my @builds = $get->('builds', 'nvr');
+
+        $t->row(
+            "$u->{release}->{name}: $u->{updateid}\n"
+            . "$u->{status} ($u->{karma}) on $u->{date_pushed}\n"
+            . join("\n", @builds),
+            join("\n", $get->('bugs', 'bz_id')) || 'none',
+        );
+        $t->hr;
+    }
+
+    return $t->draw;
+}
 
 __PACKAGE__->meta->make_immutable;
 
