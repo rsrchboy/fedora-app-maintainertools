@@ -1,5 +1,7 @@
 use inc::Module::Install;
 
+githubmeta;
+
 name     'Fedora-App-MaintainerTools';
 all_from 'lib/Fedora/App/MaintainerTools.pm';
 author   'Chris Weyl <cweyl@alumni.drew.edu>';
@@ -31,6 +33,7 @@ requires 'Module::Pluggable::Ordered';
 test_requires 'Test::More';
 
 install_script 'scripts/maintainertool';
+install_share;
 
 extra_tests;
 auto_provides;
