@@ -84,7 +84,7 @@ has changelog => (
     },
 );
 
-has _spec_build_requires => (
+has spec_build_requires => (
     metaclass => 'Collection::Hash',
 
     is         => 'ro',
@@ -97,13 +97,14 @@ has _spec_build_requires => (
         'get'    => 'build_require_version',
         'count'  => 'num_build_requires',
         'keys'   => 'build_requires',
+        'delete' => 'remove_build_require_on',
         # set, etc...?
     },
 );
 
-sub _build__spec_build_requires { shift->spec->_build_requires }
+sub _build_spec_build_requires { shift->spec->_build_requires }
 
-has _requires => (
+has spec_requires => (
     metaclass => 'Collection::Hash',
 
     is         => 'ro',
@@ -120,7 +121,7 @@ has _requires => (
     },
 );
 
-sub _build_requires { shift->spec->_requires }
+sub _build_spec_requires { shift->spec->_requires }
 
 has content => (is => 'rw', isa => 'ArrayRef[Str]', lazy_build => 1);
 # grap a copy, strip tail whitespace
