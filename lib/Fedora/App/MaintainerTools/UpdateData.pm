@@ -27,6 +27,7 @@ use Fedora::App::MaintainerTools::Types ':all';
 use autodie qw{ system };
 
 use CPAN::MetaMuncher;
+use Config::Tiny;
 use DateTime;
 use File::Copy qw{ cp };
 use List::MoreUtils qw{ any };
@@ -41,6 +42,10 @@ our $VERSION = '0.002';
 
 # debugging
 #use Smart::Comments '###', '####';
+
+has conf => (is => 'rw', isa => 'Config::Tiny', lazy_build => 1);
+# FIXME
+sub _build_conf { Config::Tiny->read('auto.ini') }
 
 has spec => (is => 'ro', isa => 'RPM::Spec', required => 1);
 has dist => (is => 'ro', isa => 'Str', lazy_build => 1    );
@@ -66,7 +71,6 @@ has module    => (is => 'ro', isa => CPModule,  lazy_build => 1);
 sub _build_cpan_meta { CPAN::MetaMuncher->new(module => shift->module)     }
 sub _build_cpanp  { require CPANPLUS::Backend; CPANPLUS::Backend->new       }
 sub _build_module { my $s = shift; $s->cpanp->parse_module(module => $s->dist) }
-
 
 has changelog => (
     metaclass => 'Collection::Array',
@@ -95,6 +99,7 @@ has spec_build_requires => (
         'empty'  => 'has_build_requires',
         'exists' => 'has_build_require',
         'get'    => 'build_require_version',
+        'set'    => 'build_require_this',
         'count'  => 'num_build_requires',
         'keys'   => 'build_requires',
         'delete' => 'remove_build_require_on',
