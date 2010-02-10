@@ -18,19 +18,41 @@
 package Fedora::App::MaintainerTools::Command::updatespec; 
 
 use Moose;
+use MooseX::Types::Moose ':all';
+use namespace::autoclean;
 
 extends 'MooseX::App::Cmd::Command'; 
 
-use Fedora::App::MaintainerTools::UpdateData;
+# classes we need but don't want to load a compile-time
+my @CLASSES = qw{
 
-#use namespace::clean -except => 'meta';
+    Fedora::App::MaintainerTools::Plugins
+    Fedora::App::MaintainerTools::UpdateData
+
+    File::ShareDir
+    RPM::Spec
+    Template
+};
 
 our $VERSION = '0.002';
+
+has _plugins => (
+    is => 'ro', isa => Object, lazy_build => 1,
+    handles => [ qw{ plugins call_plugins } ],
+);
+
+has package => (is => 'ro', isa => Bool, default => 0);
+
+sub _build__plugins { Fedora::App::MaintainerTools::Plugins->new }
+
+sub command { 'update-spec' }
 
 sub run {
     my ($self, $opt, $args) = @_;
 
     $self->app->log->info('Beginning updatespec run.');
+
+    Class::MOP::load_class($_) for @CLASSES;
 
     for my $pkg (@$args) {
 
@@ -38,14 +60,14 @@ sub run {
             spec  => RPM::Spec->new(specfile => "$pkg"),
             cpanp => $self->app->cpanp,
         );
-        $self->app->plugin_pkg->call_plugins('perl_spec_update', $data);
+        #$self->app->plugin_pkg->call_plugins('perl_spec_update', $data);
+        $self->call_plugins('perl_spec_update', $data);
 
         print join("\n", @{ $data->content });
     }
 
     return;
 }
-
 
 __PACKAGE__->meta->make_immutable;
 
