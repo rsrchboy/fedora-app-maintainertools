@@ -1,31 +1,34 @@
-Name:       [% status.rpmname %] 
-Version:    [% status.distvers %] 
-Release:    [% status.rpmvers %]%{?dist}
-[% status.license_comment -%]
-License:    [% status.license %] 
+## maintaintertool fully managed spec
+
+Name:       [% data.rpmname || spec.license %]
+Version:    [% data.distvers %]
+Release:    [% data.rpmvers %]%{?dist}
+[% data.license_comment -%]
+License:    [% data.license || spec.license %]
 Group:      Development/Libraries
-Summary:    [% status.summary %] 
-Source:     http://search.cpan.org/CPAN/[% module.path %]/[% status.distname %]-%{version}.[% module.package_extension %] 
-Url:        http://search.cpan.org/dist/[% status.distname %]
-BuildRoot:  %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n) 
+Summary:    [% data.summary %]
+Source:     http://search.cpan.org/CPAN/[% module.path %]/[% data.distname %]-%{version}.[% module.package_extension %]
+Url:        http://search.cpan.org/dist/[% data.distname %]
+BuildRoot:  %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:   perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
-[% IF status.is_noarch %]BuildArch:  noarch[% END %]
+[% IF data.is_noarch %]BuildArch:  noarch[% END %]
 
 [% brs = buildreqs; FOREACH br = brs.keys.sort -%]
 BuildRequires: perl([% br %])[% IF (brs.$br != 0) %] >= [% brs.$br %][% END %]
 [% END -%]
 
 %{?perl_default_filter}
+%{?perl_default_subpackage_tests}
 
 %description
-[% status.description -%]
+[% data.description -%]
 
 
 %prep
-%setup -q -n [% status.distname %]-%{version}
+%setup -q -n [% data.distname %]-%{version}
 
 %build
-[% IF (!status.is_noarch) -%]
+[% IF (!data.is_noarch) -%]
 %{__perl} Makefile.PL INSTALLDIRS=vendor OPTIMIZE="%{optflags}"
 [% ELSE -%]
 %{__perl} Makefile.PL INSTALLDIRS=vendor
@@ -37,7 +40,7 @@ rm -rf %{buildroot}
 
 make pure_install DESTDIR=%{buildroot}
 find %{buildroot} -type f -name .packlist -exec rm -f {} ';'
-[% IF (!status.is_noarch) -%]
+[% IF (!data.is_noarch) -%]
 find %{buildroot} -type f -name '*.bs' -a -size 0 -exec rm -f {} ';'
 [% END -%]
 find %{buildroot} -depth -type d -exec rmdir {} 2>/dev/null ';'
@@ -48,23 +51,23 @@ find %{buildroot} -depth -type d -exec rmdir {} 2>/dev/null ';'
 make test
 
 %clean
-rm -rf %{buildroot} 
+rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%doc [% docfiles %] 
-[% IF (status.is_noarch) -%]
+%doc [% docfiles %]
+[% IF (data.is_noarch) -%]
 %{perl_vendorlib}/*
 [% ELSE -%]
 %{perl_vendorarch}/*
 %exclude %dir %{perl_vendorarch}/auto
 [% END -%]
 %{_mandir}/man3/*.3*
-[% FOREACH file = status.extra_files -%]
+[% FOREACH file = data.extra_files -%]
 [% file %]
 [% END -%]
 
 %changelog
-* [% date %] [% packager %] [% status.distvers %]-[% status.rpmvers %]
+* [% date %] [% packager %] [% data.distvers %]-[% data.rpmvers %]
 - initial RPM packaging
 - generated with cpan2dist (CPANPLUS::Dist::RPM version [% packagervers %])
