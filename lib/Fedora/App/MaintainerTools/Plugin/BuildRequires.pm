@@ -22,6 +22,8 @@ use warnings;
 
 use autodie qw{ system };
 
+use Path::Class;
+
 our $VERSION = '0.002';
 
 #############################################################################
@@ -55,6 +57,8 @@ sub perl_spec_update {
     my $mm    = $data->cpan_meta;
     my $spec  = $data->spec;
     my @lines = @{ $data->content };
+
+    my $module = $mm->module;
 
     my (@new_brs, @cl);
     NEW_BR_LOOP:
@@ -93,8 +97,93 @@ sub perl_spec_update {
         push @cl, "- added a new br on $br (version $new)";
     }
 
+    # delete stale build requirements
+    PURGE_BR_LOOP:
+    for my $br ($data->build_requires) {
+
+        # not ideal, but WFN.
+        next PURGE_BR_LOOP
+            if $br !~ /^perl\(/ || $br eq 'perl(CPAN)';
+
+        # check to see META.yml lists it as a dep.  if not, purge.
+        unless ($mm->has_rpm_br_on($br)) {
+
+            $data->remove_build_require_on($br);
+            push @cl, "- dropped old BR on $br";
+        }
+    }
+
+    # check for inc::Module::AutoInstall; force br CPAN if so *sigh*
+    my $mdir = dir($module->status->extract || $module->extract);
+    if (file($mdir, qw{ inc Module AutoInstall.pm })->stat) {
+
+        warn "inc::Module::AutoInstall found; BR'ing CPAN\n";
+
+        if (!$data->has_build_require('perl(CPAN)') &&
+        !$mm->has_rpm_br_on('perl(CPAN)')) {
+
+            push @new_brs, 'BuildRequires:  perl(CPAN)';
+            push @cl, '- added a new br on CPAN (inc::Module::AutoInstall found)';
+        }
+    }
+
     $data->content(\@lines);
     $data->add_new_with_tag('auto-added brs!', \@new_brs) if @new_brs;
+
+    my @new_reqs;
+    NEW_REQ_LOOP:
+    for my $r (sort $mm->rpm_requires) {
+
+        my $new = $mm->rpm_require_version($r);
+
+        if ($data->has_require($r)) {
+
+            my $old = $data->require_version($r);
+            next NEW_REQ_LOOP if $new eq '0' || $old eq $new;
+
+            # otherwise, update and clog it
+            (my $r_re = $r) =~ s/\(/\\(/g;
+            $r_re            =~ s/\)/\\)/g;
+            @lines =
+                map {
+                    if ($_ =~ /^Requires:\s*$r_re/) {
+
+                        $_ =~ s/\S+$/$new/ if $_ !~ /$r_re$/;
+                        $_ .= " >= $new"   if $_ =~ /$r_re$/;
+                    }
+                    $_;
+                }
+                @lines
+                ;
+            push @cl, "- altered req on $r ($old => $new)";
+            next NEW_REQ_LOOP;
+        }
+
+        # if we're here, it's a new BR
+        push @new_reqs, $new
+                     ? "Requires:       $r >= $new"
+                     : "Requires:       $r"
+                     ;
+        push @cl, "- added a new req on $r (version $new)";
+    }
+
+    # delete stale build requirements
+    PURGE_R_LOOP:
+    for my $req ($data->requires) {
+
+        # make sure it's a _perl_ requires
+        next PURGE_R_LOOP unless $req =~ /^perl\(/;
+
+        # check to see META.yml lists it as a dep.  if not, purge.
+        unless ($mm->has_rpm_require_on($req)) {
+
+            $data->remove_build_require_on($req);
+            push @cl, "- dropped old requires on $req";
+        }
+    }
+
+    $data->add_new_with_tag('auto-added reqs!', \@new_reqs, \@lines);
+
     $data->add_changelog(@cl);
     return;
 }
