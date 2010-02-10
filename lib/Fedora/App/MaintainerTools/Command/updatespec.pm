@@ -22,12 +22,10 @@ use MooseX::Types::Moose ':all';
 use namespace::autoclean;
 
 extends 'MooseX::App::Cmd::Command'; 
+with 'Fedora::App::MaintainerTools::Role::Plugins';
 
 # classes we need but don't want to load a compile-time
 my @CLASSES = qw{
-
-    Fedora::App::MaintainerTools::Plugins
-    Fedora::App::MaintainerTools::UpdateData
 
     File::ShareDir
     RPM::Spec
@@ -36,14 +34,7 @@ my @CLASSES = qw{
 
 our $VERSION = '0.002';
 
-has _plugins => (
-    is => 'ro', isa => Object, lazy_build => 1,
-    handles => [ qw{ plugins call_plugins } ],
-);
-
 has package => (is => 'ro', isa => Bool, default => 0);
-
-sub _build__plugins { Fedora::App::MaintainerTools::Plugins->new }
 
 sub command { 'update-spec' }
 
