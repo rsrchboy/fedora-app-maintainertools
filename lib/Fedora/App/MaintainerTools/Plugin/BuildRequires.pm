@@ -85,15 +85,15 @@ sub perl_spec_update {
                 }
                 @lines
                 ;
+
+            $data->build_require_this($br => $new);
             push @cl, "- altered br on $br ($old => $new)";
             next NEW_BR_LOOP;
         }
 
         # if we're here, it's a new BR
-        push @new_brs, $new 
-                     ? "BuildRequires:  $br >= $new" 
-                     : "BuildRequires:  $br"
-                     ;
+        push @new_brs, _br($br => $new);
+        $data->build_require_this($br => $new);
         push @cl, "- added a new br on $br (version $new)";
     }
 
@@ -105,12 +105,26 @@ sub perl_spec_update {
         next PURGE_BR_LOOP
             if $br !~ /^perl\(/ || $br eq 'perl(CPAN)';
 
+        next PURGE_BR_LOOP if $br =~ /^perl\(:MODULE_COMPAT/;
+        next PURGE_BR_LOOP if exists $data->conf->{add_build_requires}->{$br};
+
         # check to see META.yml lists it as a dep.  if not, purge.
         unless ($mm->has_rpm_br_on($br)) {
 
             $data->remove_build_require_on($br);
             push @cl, "- dropped old BR on $br";
         }
+    }
+
+    for my $manual_br (keys %{$data->conf->{add_build_requires}}) {
+
+        next if $data->has_build_require($manual_br);
+
+        # FIXME versions??
+        my $ver = $data->conf->{add_build_requires}->{$manual_br};
+        $data->build_require_this($manual_br => $ver);
+        push @new_brs, _br($manual_br => $ver);
+        push @cl, "- added manual BR on $manual_br";
     }
 
     # check for inc::Module::AutoInstall; force br CPAN if so *sigh*
@@ -122,7 +136,7 @@ sub perl_spec_update {
         if (!$data->has_build_require('perl(CPAN)') &&
         !$mm->has_rpm_br_on('perl(CPAN)')) {
 
-            push @new_brs, 'BuildRequires:  perl(CPAN)';
+            push @new_brs, _br('perl(CPAN)');
             push @cl, '- added a new br on CPAN (inc::Module::AutoInstall found)';
         }
     }
@@ -186,6 +200,20 @@ sub perl_spec_update {
 
     $data->add_changelog(@cl);
     return;
+}
+
+sub _suspect_req { shift =~ /^perl\(Test::/ }
+
+sub _br  { _tag('BuildRequires', @_) }
+sub _req { _tag('Requires', @_)      }
+
+sub _tag {
+    my ($tag, $val, $ver) = @_;
+
+    return $ver
+         ? "$tag:  $val >= $ver"
+         : "$tag:  $val"
+         ;
 }
 
 1;
