@@ -102,10 +102,10 @@ has _rpm_requires => (
         #'' => '_rpm_build_requires',
         'count'  => 'num_rpm_requires',
         'empty'  => 'has_rpm_requires',
+        'exists' => 'has_rpm_require_on',
         'keys'   => 'rpm_requires',
         'get'    => 'rpm_require_version',
         'kv'     => 'rpm_requires_kv_pairs',
-        'exists' => 'does_rpm_require',
     },
 );
 
