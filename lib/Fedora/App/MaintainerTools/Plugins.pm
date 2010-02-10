@@ -22,7 +22,7 @@ our $VERSION = '0.002';
 use Module::Pluggable::Ordered 
     search_path => [ 'Fedora::App::MaintainerTools::Plugin' ];
 
-# th-th-that's all, folks! :)
+sub new { bless {} }
 
 1;
 
