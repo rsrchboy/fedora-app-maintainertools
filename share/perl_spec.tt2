@@ -1,6 +1,9 @@
 ## maintaintertool fully managed spec
 
-Name:       [% data.rpmname || spec.license %]
+# WARNING: this spec file is fully managed by maintainer tool; local changes
+# will be overwritten.
+
+Name:       [% data.rpmname || spec.rpmname %]
 Version:    [% data.distvers %]
 Release:    [% data.rpmvers %]%{?dist}
 [% data.license_comment -%]
@@ -10,6 +13,7 @@ Summary:    [% data.summary %]
 Source:     http://search.cpan.org/CPAN/[% module.path %]/[% data.distname %]-%{version}.[% module.package_extension %]
 Url:        http://search.cpan.org/dist/[% data.distname %]
 BuildRoot:  %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+
 Requires:   perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 [% IF data.is_noarch %]BuildArch:  noarch[% END %]
 
