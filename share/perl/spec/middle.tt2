@@ -1,0 +1,45 @@
+%description
+[% data.description -%]
+
+%prep
+%setup -q -n [% data.distname %]-%{version}
+
+%build
+[% IF (!data.is_noarch) -%]
+%{__perl} Makefile.PL INSTALLDIRS=vendor OPTIMIZE="%{optflags}"
+[% ELSE -%]
+%{__perl} Makefile.PL INSTALLDIRS=vendor
+[% END -%]
+make %{?_smp_mflags}
+
+%install
+rm -rf %{buildroot}
+
+make pure_install DESTDIR=%{buildroot}
+find %{buildroot} -type f -name .packlist -exec rm -f {} ';'
+[% IF (!data.is_noarch) -%]
+find %{buildroot} -type f -name '*.bs' -a -size 0 -exec rm -f {} ';'
+[% END -%]
+find %{buildroot} -depth -type d -exec rmdir {} 2>/dev/null ';'
+
+%{_fixperms} %{buildroot}/*
+
+%check
+make test
+
+%clean
+rm -rf %{buildroot}
+
+%files
+%defattr(-,root,root,-)
+%doc [% docfiles %]
+[% IF (data.is_noarch) -%]
+%{perl_vendorlib}/*
+[% ELSE -%]
+%{perl_vendorarch}/*
+%exclude %dir %{perl_vendorarch}/auto
+[% END -%]
+%{_mandir}/man3/*.3*
+[% FOREACH file = data.extra_files -%]
+[% file %]
+[% END -%]
