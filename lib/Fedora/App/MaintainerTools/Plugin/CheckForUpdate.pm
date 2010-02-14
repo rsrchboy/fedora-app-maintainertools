@@ -45,7 +45,7 @@ sub perl_spec_update {
     my $m       = $data->module;
     my $mm      = $data->cpan_meta;
     my $old_v   = $data->spec->version;
-    my ($v, $r) = ($mm->version, '1%{?dist}');
+    my ($v, $r) = ($mm->version, 1);
     my @cl;
     my @lines = @{ $data->content };
 
@@ -54,7 +54,6 @@ sub perl_spec_update {
         # this isn't a version update, so bump release
         (my $nr = $r) =~ s/\D+$//;
         $r++;
-        $r = "$r%{?dist}";
     }
     else {
 
@@ -64,14 +63,17 @@ sub perl_spec_update {
             ;
         @lines =  map { /^Source(0|):/i && $_ =~ s/\S+$/$s/; $_ } @lines;
 
+        $data->source0($s);
+
         if (rpmvercmp($old_v, $v) == 1) {
 
             # rpm is going to think that the old version is larger than the new
             # one, so we're going to need to fiddle with the epoch here
-            if ($self->epoch) {
-                my $e = $self->epoch + 1;
+            if ($data->epoch) {
+                my $e = $data->epoch + 1;
                 @lines = map { /^Epoch:/i && $_ =~ s/\S+$/$e/; $_ } @lines;
 
+                $data->epoch($e);
                 push @cl, "- Bump epoch to $e ($old_v => $v)";
             }
             else {
@@ -81,12 +83,16 @@ sub perl_spec_update {
         }
     }
     
+    $data->release($r);
+    $r .= '%{?dist}';
+
     @lines = 
         map { /^Version:/i && $_ =~ s/\S+$/$v/; $_    }
         map { /^Release:/i && $_ =~ s/\S+$/$r/; $_    }
         @lines
         ;
     
+
     $data->add_changelog(@cl);
     $data->content(\@lines);
     return;
