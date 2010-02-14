@@ -111,6 +111,10 @@ sub perl_spec_update {
         # check to see META.yml lists it as a dep.  if not, purge.
         unless ($mm->has_rpm_br_on($br)) {
 
+            #(my $line = _br($br)) =~ s/:\s+/:\\s+/;
+            #warn "line: $line";
+            @lines = grep { !/^BuildRequires:\s+$br/ } @lines;
+
             $data->remove_build_require_on($br);
             push @cl, "- dropped old BR on $br";
         }
@@ -174,10 +178,8 @@ sub perl_spec_update {
         }
 
         # if we're here, it's a new BR
-        push @new_reqs, $new
-                     ? "Requires:       $r >= $new"
-                     : "Requires:       $r"
-                     ;
+        $data->require_this($r => $new);
+        push @new_reqs, _req($r => $new);
         push @cl, "- added a new req on $r (version $new)";
     }
 
@@ -197,6 +199,22 @@ sub perl_spec_update {
     }
 
     $data->add_new_with_tag('auto-added reqs!', \@new_reqs, \@lines);
+
+    # fix up middle -- PERL_INSTALL_ROOT mainly
+    my @middle;
+
+    for my $line ($data->all_middle) {
+
+        if ($line eq 'make pure_install PERL_INSTALL_ROOT=%{buildroot}') {
+
+            $line = 'make pure_install DESTDIR=%{buildroot}';
+            push @cl, '- PERL_INSTALL_ROOT => DESTDIR';
+        }
+
+        push @middle, $line;
+    }
+
+    $data->middle(\@middle);
 
     $data->add_changelog(@cl);
     return;
