@@ -30,6 +30,9 @@ requires 'RPM::Spec';
 requires 'YAML::Tiny';
 requires 'Module::Pluggable::Ordered';
 
+# for ftbfs, etc
+requires 'Fedora::Bugzilla' => '0.13';
+
 test_requires 'Test::More';
 
 install_script 'scripts/maintainertool';
