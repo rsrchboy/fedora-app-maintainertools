@@ -5,10 +5,10 @@
 %setup -q -n [% data.distname %]-%{version}
 
 %build
-[% IF (!data.is_noarch) -%]
-%{__perl} Makefile.PL INSTALLDIRS=vendor OPTIMIZE="%{optflags}"
-[% ELSE -%]
+[% IF data.is_noarch -%]
 %{__perl} Makefile.PL INSTALLDIRS=vendor
+[% ELSE -%]
+%{__perl} Makefile.PL INSTALLDIRS=vendor OPTIMIZE="%{optflags}"
 [% END -%]
 make %{?_smp_mflags}
 
