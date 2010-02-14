@@ -10,3 +10,6 @@ Makefile
 *.rpm
 *.old
 pm_to_blib
+inc/
+*.swp
+foo*
