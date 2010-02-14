@@ -19,14 +19,16 @@ package Fedora::App::MaintainerTools::Command::updatespec;
 
 use Moose;
 use MooseX::Types::Moose ':all';
+use MooseX::Types::Path::Class ':all';
 use namespace::autoclean;
+use Path::Class;
 
 extends 'MooseX::App::Cmd::Command'; 
 with 'Fedora::App::MaintainerTools::Role::Plugins';
 
 # classes we need but don't want to load a compile-time
 my @CLASSES = qw{
-
+    DateTime
     File::ShareDir
     RPM::Spec
     Template
@@ -36,12 +38,14 @@ our $VERSION = '0.002';
 
 has package => (is => 'ro', isa => Bool, default => 0);
 
-sub command { 'update-spec' }
+has share_dir => (is => 'ro', isa => Dir, coerce => 1, lazy_build => 1);
+
+sub command_names { 'update-spec' }
 
 sub run {
     my ($self, $opt, $args) = @_;
 
-    $self->app->log->info('Beginning updatespec run.');
+    $self->app->log->info('Beginning update-spec run.');
 
     Class::MOP::load_class($_) for @CLASSES;
 
@@ -51,13 +55,43 @@ sub run {
             spec  => RPM::Spec->new(specfile => "$pkg"),
             cpanp => $self->app->cpanp,
         );
-        #$self->app->plugin_pkg->call_plugins('perl_spec_update', $data);
         $self->call_plugins('perl_spec_update', $data);
 
-        print join("\n", @{ $data->content });
+        #print join("\n", $data->spec->middle);
+        #die;
+
+        #print join("\n", @{ $data->content });
+
+        #return;
+
+        my $tmpl = 'perl/spec.tt2';
+        my $tt2 = Template->new({ INCLUDE_PATH => $self->share_dir });
+
+        print $tt2->process($tmpl, {
+            data      => $data,
+            rpm_date  => DateTime->now->strftime('%a %b %d %Y'),
+            changelog => join("\n", @{$data->changelog}),
+
+            old_changelog => join("\n", $data->spec->changelog),
+
+            middle => join("\n", $data->all_middle),
+
+            # FIXME
+            packager => 'Chris Weyl <cweyl@alumni.drew.edu>',
+        });
+
     }
 
     return;
+}
+
+sub _build_share_dir {
+    my $self = shift @_;
+
+    my $dir = dir qw{ .. share };
+
+    return $dir->absolute if $dir->stat;
+    return File::ShareDir::dist_dir('Fedora-App-MaintainerTools');
 }
 
 __PACKAGE__->meta->make_immutable;
