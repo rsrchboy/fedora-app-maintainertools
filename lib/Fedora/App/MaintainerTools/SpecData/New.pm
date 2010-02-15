@@ -48,8 +48,8 @@ our $VERSION = '0.002';
 
 sub _build_name { 'perl-' . shift->dist }
 
-sub _build__build_requires { { shift->mm->full_rpm_build_requires } }
-sub _build__requires       { { shift->mm->full_rpm_requires       } }
+sub _build__build_requires { my %x = shift->mm->full_rpm_build_requires; \%x }
+sub _build__requires       { my %x = shift->mm->full_rpm_requires;       \%x }
 
 sub _build__changelog      {
 
@@ -71,7 +71,6 @@ sub _build_summary {
 }
 
 has description => (is => 'rw', isa => 'Str', lazy_build => 1);
-
 
 #
 # given a cpanplus::module, try to extract its description from the
@@ -162,7 +161,8 @@ you're really interested in them, you should probably read the source :))
 
 =head1 SEE ALSO
 
-L<Fedora::App::MaintainerTools>, L<Fedora::App::MaintainerTools::SpecData>
+L<Fedora::App::MaintainerTools>, L<Fedora::App::MaintainerTools::SpecData>,
+L<CPANPLUS::Dist::RPM>
 
 =head1 AUTHOR
 
