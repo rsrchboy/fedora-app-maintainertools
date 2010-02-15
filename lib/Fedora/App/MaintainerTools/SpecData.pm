@@ -20,29 +20,39 @@ package Fedora::App::MaintainerTools::SpecData;
 use Moose;
 use MooseX::AttributeHelpers;
 use MooseX::Types::Moose ':all';
-use MooseX::Types::URI   ':all';
+use MooseX::Types::Path::Class ':all';
+use MooseX::Types::URI ':all';
 
+use autodie 'system';
 use namespace::autoclean;
-use autodie qw{ system };
 
 use Fedora::App::MaintainerTools::Types ':all';
+
+with 'Fedora::App::MaintainerTools::Role::Template';
 
 use CPAN::MetaMuncher;
 use Config::Tiny;
 use DateTime;
-use File::Copy qw{ cp };
+use File::Copy 'cp';
 use List::Util 'first';
-use List::MoreUtils qw{ any };
+use List::MoreUtils 'any';
 use Path::Class;
 use RPM::VersionSort;
+use Software::LicenseUtils;
 
 our $VERSION = '0.002';
 
 # debugging
 #use Smart::Comments '###', '####';
 
+#############################################################################
+# required
+
 # e.g. "Moose", "Catalyst-Runtime", etc
 has dist => (is => 'ro', isa => 'Str', required => 1);
+
+#############################################################################
+# CPAN bits, etc
 
 # FIXME
 has conf => (is => 'rw', isa => 'Config::Tiny', lazy_build => 1);
@@ -56,6 +66,9 @@ has module    => (is => 'ro', isa => CPModule,  lazy_build => 1);
 sub _build_mm { CPAN::MetaMuncher->new(module => shift->module)     }
 sub _build_cpanp  { require CPANPLUS::Backend; CPANPLUS::Backend->new       }
 sub _build_module { my $s = shift; $s->cpanp->parse_module(module => $s->dist) }
+
+#############################################################################
+# generated spec data, etc
 
 has packager  => (is => 'rw', lazy_build => 1, isa => Str);
 has name      => (is => 'rw', lazy_build => 1, isa => Str);
@@ -92,7 +105,7 @@ has _build_requires => (
         'count'  => 'num_build_requires',
         'keys'   => 'build_requires',
         'delete' => 'remove_build_require_on',
-        # set, etc...?
+        'kv'     => 'build_require_pairs',
     },
 );
 
@@ -107,9 +120,12 @@ has _requires => (
         'count'  => 'num_requires',
         'keys'   => 'requires',
         'set'    => 'require_this',
-        # set, etc...?
+        'kv'     => 'require_pairs',
     },
 );
+
+#############################################################################
+# attribute builder methods
 
 sub _build_packager { chomp(my $p = `rpm --eval '%packager'`); $p }
 sub _build_release  { 1 }
@@ -146,6 +162,32 @@ sub _build_summary         { die 'not implemented' }
 sub _build__changelog      { die 'not implemented' }
 sub _build__build_requires { die 'not implemented!' }
 sub _build__requires       { die 'not implemented!' }
+
+#############################################################################
+# template bits
+
+# aka, what we use to generate the spec files
+
+has template => (is => 'rw', isa => File, coerce => 1, lazy_build => 1);
+has output   => (is => 'ro', isa => Str, lazy_build => 1);
+
+sub _build_template { 'perl/spec.tt2' }
+
+sub _build_output {
+    my $self = shift @_;
+
+    my $output = $self->_tt2->process($self->template->stringify, {
+        data      => $self,
+        rpm_date  => DateTime->now->strftime('%a %b %d %Y'),
+        changelog => join("\n", $self->changelog),
+
+        # FIXME
+        packager => 'Chris Weyl <cweyl@alumni.drew.edu>',
+     });
+
+     die $self->_tt2->error . "\n" unless $output;
+     return $output;
+}
 
 __PACKAGE__->meta->make_immutable;
 
