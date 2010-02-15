@@ -32,8 +32,8 @@ use namespace::autoclean;
 use DateTime;
 use File::Basename;
 #use File::Copy qw{ cp };
-#use List::MoreUtils qw{ any };
-#use Path::Class;
+use List::MoreUtils qw{ any uniq };
+use Path::Class;
 use Pod::POM;
 use Pod::POM::View::Text;
 #use RPM::VersionSort;
@@ -70,7 +70,13 @@ sub _build_summary {
     shift->mm->data->{abstract};
 }
 
+#############################################################################
+# description
+
 has description => (is => 'rw', isa => 'Str', lazy_build => 1);
+
+# this is largely stolen from CPANPLUS::Dist::RPM...  in need of some serious
+# refactoring but works for now.
 
 #
 # given a cpanplus::module, try to extract its description from the
@@ -122,6 +128,137 @@ sub _build_description {
     }
 
     return 'no description found';
+}
+
+#############################################################################
+# license
+
+# this is largely stolen from CPANPLUS::Dist::RPM...  in need of some serious
+# refactoring but works for now.
+
+has license_map => (
+    traits => [ 'MooseX::AttributeHelpers::Trait::Collection::Hash' ],
+    is => 'ro', isa => 'HashRef[Str]', lazy_build => 1,
+    provides => { get => 'license_shortname' },
+);
+
+has license_comment => (is => 'rw', isa => 'Maybe[Str]', lazy_build => 1);
+
+sub _build_license_comment { undef }
+
+sub _build_license_map {
+
+    return {
+
+        # classname                         => shortname
+        'Software::License::AGPL_3'         => 'AGPLv3',
+        'Software::License::Apache_1_1'     => 'ASL 1.1',
+        'Software::License::Apache_2_0'     => 'ASL 2.0',
+        'Software::License::Artistic_1_0'   => 'Artistic',
+        'Software::License::Artistic_2_0'   => 'Artistic 2.0',
+        'Software::License::BSD'            => 'BSD',
+        'Software::License::FreeBSD'        => 'BSD',
+        'Software::License::GFDL_1_2'       => 'GFDL',
+        'Software::License::GPL_1'          => 'GPL',
+        'Software::License::GPL_2'          => 'GPLv2',
+        'Software::License::GPL_3'          => 'GPLv3',
+        'Software::License::LGPL_2_1'       => 'LGPLv2',
+        'Software::License::LGPL_3_0'       => 'LGPLv3',
+        'Software::License::MIT'            => 'MIT',
+        'Software::License::Mozilla_1_0'    => 'MPLv1.0',
+        'Software::License::Mozilla_1_1'    => 'MPLv1.1',
+        'Software::License::Perl_5'         => 'GPL+ or Artistic',
+        'Software::License::QPL_1_0'        => 'QPL',
+        'Software::License::Sun'            => 'SPL',
+        'Software::License::Zlib'           => 'zlib',
+    };
+}
+
+sub _build_license {
+    my $self = shift @_;
+
+    Class::MOP::load_class('File::Find::Rule');
+
+    #my $module = $self->parent;
+    my $module = $self->module;
+
+    my $lic_comment = q{};
+
+    # First, check what CPAN says
+    my $cpan_lic = $module->details->{'Public License'};
+
+    ### $cpan_lic
+
+    # then, check META.yml (if existing)
+    my $extract_dir = dir $module->extract;
+    my $meta_file   = file $extract_dir, 'META.yml';
+    my @meta_lics;
+
+    if (-e "$meta_file" && -r _) {
+
+        my $meta = $meta_file->slurp;
+        @meta_lics =
+            Software::LicenseUtils->guess_license_from_meta_yml($meta);
+    }
+
+    # FIXME we pretty much just ignore the META.yml license right now
+
+    ### @meta_lics
+
+    # then, check the pod in all found .pm/.pod's
+    my $rule = File::Find::Rule->new;
+    my @pms = File::Find::Rule
+        ->or(
+            File::Find::Rule->new->directory->name('blib')->prune->discard,
+            File::Find::Rule->new->file->name('*.pm', '*.pod')
+            )
+        ->in($extract_dir)
+        ;
+    my %pm_lics;
+
+    for my $file (@pms) {
+
+        $file = file $file;
+        #my $text = file($file)->slurp;
+        my $text = $file->slurp;
+        my @lics = Software::LicenseUtils->guess_license_from_pod($text);
+
+        ### file: "$file"
+        ### @lics
+
+        #push @pm_lics, @lics;
+        $pm_lics{$file->relative($extract_dir)} = [ @lics ]
+            if @lics > 0;
+    }
+
+    ### %pm_lics
+
+    my @lics;
+
+    for my $file (sort keys %pm_lics) {
+
+       my @file_lics = map { $self->license_shortname($_) } @{$pm_lics{"$file"}};
+
+       $lic_comment .= "# $file -> " . join(q{, }, @file_lics) . "\n";
+       push @lics, @file_lics;
+    }
+
+    # FIXME need to sort out the licenses here
+    @lics = uniq @lics;
+
+    ### $lic_comment
+    ### @lics
+
+    if (@lics > 0) {
+        #$self->status->license(join(' or ', @lics));
+        $self->license_comment($lic_comment);
+        return join(' or ', @lics);
+    }
+
+    #$self->status->license($DEFAULT_LICENSE);
+    $self->license_comment("# license auto-determination failed\n");
+    #$self->status->license('CHECK(GPL+ or Artistic)');
+    return 'CHECK(GPL+ or Artistic)';
 }
 
 __PACKAGE__->meta->make_immutable;
