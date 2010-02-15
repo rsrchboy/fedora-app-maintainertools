@@ -2,5 +2,3 @@
 * [% rpm_date %] [% packager %] [% data.version %]-[% data.release %]
 [% foo = changelog.shift; foo = changelog.shift -%]
 [% changelog %]
-
-[% old_changelog %]

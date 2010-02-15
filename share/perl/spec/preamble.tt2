@@ -11,17 +11,19 @@ Group:          Development/Libraries
 Source0:        [% data.source0 %] 
 URL:            http://search.cpan.org/dist/[% data.distname %]
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires:   perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+Requires:       perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 [% IF data.is_noarch -%]
-BuildArch:  noarch
+BuildArch:      noarch
 [% END -%]
 
-[% brs = data.spec_build_requires; FOREACH br = brs.keys.sort -%]
-BuildRequires:  [% br %][% IF (brs.$br != 0) %] >= [% brs.$br %][% END %]
+[% brs = data.build_requires; FOREACH br = brs.sort -%]
+[% vers = data.build_require_version(br) -%]
+BuildRequires:  [% br %][% IF (vers != 0) %] >= [% vers %][% END %]
 [% END -%]
 
-[% brs = data.spec_requires; FOREACH br = brs.keys.sort -%]
-Requires:       [% br %][% IF (brs.$br != 0) %] >= [% brs.$br %][% END %]
+[% brs = data.requires; FOREACH br = brs.sort -%]
+[% vers = data.build_require_version(br) -%]
+Requires:       [% br %][% IF (vers != 0) %] >= [% vers %][% END %]
 [% END -%]
 
 %{?perl_default_filter}

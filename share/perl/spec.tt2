@@ -1,11 +1,8 @@
-[% PROCESS perl/spec/preamble.tt2 %]
-
+[% PROCESS perl/spec/preamble.tt2 -%]
 [% IF middle %]
 %description
 [% middle %]
-[% ELSE # FIXME not optimal, but WFN %]
-%description
+[% ELSE %]
 [% PROCESS perl/spec/middle.tt2 %]
-[% END %]
-
+[% END -%]
 [% PROCESS perl/spec/changelog.tt2 %]
