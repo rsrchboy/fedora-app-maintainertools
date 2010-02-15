@@ -1,4 +1,4 @@
-Name:           [% data.name || spec.rpmname %]
+Name:           [% data.name %]
 Summary:        [% data.summary %]
 [% IF data.epoch -%]
 Epoch:          [% data.epoch %]

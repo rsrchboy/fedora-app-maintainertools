@@ -59,6 +59,8 @@ sub _build__meta {
     die "Eval error reading META: $@";
 }
 
+sub data { shift->_meta->[0] }
+
 # simple
 
 has version => (is => 'rw', isa => 'Str', lazy_build => 1);
@@ -82,6 +84,8 @@ has _rpm_build_requires => (
         'keys'   => 'rpm_build_requires',
         'get'    => 'rpm_build_require_version',
         'kv'     => 'rpm_build_requires_kv_pairs',
+
+        elements => 'full_rpm_build_requires',
     },
 );
 
