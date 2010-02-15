@@ -110,6 +110,8 @@ has _rpm_requires => (
         'keys'   => 'rpm_requires',
         'get'    => 'rpm_require_version',
         'kv'     => 'rpm_requires_kv_pairs',
+
+        elements => 'full_rpm_requires',
     },
 );
 
