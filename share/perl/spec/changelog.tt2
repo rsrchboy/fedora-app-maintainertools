@@ -1,5 +1,5 @@
 %changelog
-* [% rpm_date %] [% packager %] [% data.version %]-[% data.release %]
+* [% rpm_date %] [% data.packager %] [% data.version %]-[% data.release %]
 [% foo = changelog.shift; foo = changelog.shift -%]
 [% data.changelog.join("\n") %]
 
