@@ -16,12 +16,6 @@ inc/Module/Install/WriteAll.pm
 lib/CPAN/MetaMuncher.pm
 lib/Fedora/App/MaintainerTools.pm
 lib/Fedora/App/MaintainerTools/Command/updatespec.pm
-lib/Fedora/App/MaintainerTools/Plugin/BuildRequires.pm
-lib/Fedora/App/MaintainerTools/Plugin/CheckForUpdate.pm
-lib/Fedora/App/MaintainerTools/Plugin/FedoraBits.pm
-lib/Fedora/App/MaintainerTools/Plugin/First.pm
-lib/Fedora/App/MaintainerTools/Plugin/Last.pm
-lib/Fedora/App/MaintainerTools/Plugins.pm
 lib/Fedora/App/MaintainerTools/Types.pm
 lib/Fedora/App/MaintainerTools/UpdateData.pm
 Makefile.PL
