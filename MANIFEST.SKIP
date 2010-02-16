@@ -1,0 +1,6 @@
+Fedora-App-MaintainerTools-*.
+blib
+MANIFEST.SKIP
+\.git
+\.bak
+Makefile
