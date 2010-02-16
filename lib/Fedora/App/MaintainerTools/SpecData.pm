@@ -141,9 +141,9 @@ sub _build_source0  {
     my $self = shift @_;
 
     return 'http://search.cpan.org/CPAN/'
-        . $self->module->path . '/'
-        . $self->dist . '-'
-        . $self->version . $self->module->package_extension
+        . $self->module->path . q{/}
+        . $self->dist . q{-} . $self->version . q{.}
+        . $self->module->package_extension
         ;
 }
 
