@@ -30,6 +30,8 @@ requires 'RPM::Spec';
 requires 'RPM::VersionCompare';
 requires 'YAML::Tiny';
 requires 'Module::Pluggable::Ordered';
+requires 'Pod::POM';
+requires 'Pod::POM::View::Text';
 requires 'Software::LicenseUtils';
 
 # for ftbfs, etc
