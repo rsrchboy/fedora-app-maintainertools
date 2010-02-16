@@ -47,6 +47,9 @@ sub run {
 
     for my $pkg (@$args) {
 
+        # FIXME this might not be the best approach.
+        $pkg =~ s/::/-/g;
+
         my $data =
             Fedora::App::MaintainerTools::SpecData::New->new(dist => $pkg);
 
