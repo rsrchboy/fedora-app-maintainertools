@@ -24,21 +24,18 @@ use namespace::autoclean;
 use Path::Class;
 
 extends 'MooseX::App::Cmd::Command'; 
-with 'Fedora::App::MaintainerTools::Role::Plugins';
+with 'Fedora::App::MaintainerTools::Role::Template';
 
 # classes we need but don't want to load a compile-time
 my @CLASSES = qw{
     DateTime
-    File::ShareDir
     RPM::Spec
-    Template
+    Fedora::App::MaintainerTools::SpecData::Update
 };
 
 our $VERSION = '0.002';
 
 has package => (is => 'ro', isa => Bool, default => 0);
-
-has share_dir => (is => 'ro', isa => Dir, coerce => 1, lazy_build => 1);
 
 sub command_names { 'update-spec' }
 
@@ -51,47 +48,15 @@ sub run {
 
     for my $pkg (@$args) {
 
-        my $data = Fedora::App::MaintainerTools::UpdateData->new(
-            spec  => RPM::Spec->new(specfile => "$pkg"),
-            cpanp => $self->app->cpanp,
-        );
-        $self->call_plugins('perl_spec_update', $data);
+        my $data =
+            Fedora::App::MaintainerTools::SpecData::Update->new(
+                spec => RPM::Spec->new(specfile => "$pkg"),
+            );
 
-        #print join("\n", $data->spec->middle);
-        #die;
-
-        #print join("\n", @{ $data->content });
-
-        #return;
-
-        my $tmpl = 'perl/spec.tt2';
-        my $tt2 = Template->new({ INCLUDE_PATH => $self->share_dir });
-
-        print $tt2->process($tmpl, {
-            data      => $data,
-            rpm_date  => DateTime->now->strftime('%a %b %d %Y'),
-            changelog => join("\n", @{$data->changelog}),
-
-            old_changelog => join("\n", $data->spec->changelog),
-
-            middle => join("\n", $data->all_middle),
-
-            # FIXME
-            packager => 'Chris Weyl <cweyl@alumni.drew.edu>',
-        });
-
+        print $data->output;
     }
 
     return;
-}
-
-sub _build_share_dir {
-    my $self = shift @_;
-
-    my $dir = dir qw{ .. share };
-
-    return $dir->absolute if $dir->stat;
-    return File::ShareDir::dist_dir('Fedora-App-MaintainerTools');
 }
 
 __PACKAGE__->meta->make_immutable;

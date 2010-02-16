@@ -1,7 +1,5 @@
 #############################################################################
 #
-# Keep track of updates to our spec file...
-#
 # Author:  Chris Weyl (cpan:RSRCHBOY), <cweyl@alumni.drew.edu>
 # Company: No company, personal work
 # Created: 05/12/2009 09:54:18 PM PDT
@@ -18,25 +16,19 @@
 package Fedora::App::MaintainerTools::SpecData::New;
 
 use Moose;
-#use MooseX::AttributeHelpers;
-#use MooseX::Types::Moose ':all';
-#use MooseX::Types::URI   ':all';
+use MooseX::Types::Moose ':all';
 
 use namespace::autoclean;
 #use autodie qw{ system };
 
 #use Fedora::App::MaintainerTools::Types ':all';
 
-#use CPAN::MetaMuncher;
-#use Config::Tiny;
 use DateTime;
 use File::Basename;
-#use File::Copy qw{ cp };
 use List::MoreUtils qw{ any uniq };
 use Path::Class;
 use Pod::POM;
 use Pod::POM::View::Text;
-#use RPM::VersionSort;
 use Text::Autoformat;
 
 extends 'Fedora::App::MaintainerTools::SpecData';
@@ -73,7 +65,7 @@ sub _build_summary {
 #############################################################################
 # description
 
-has description => (is => 'rw', isa => 'Str', lazy_build => 1);
+has description => (is => 'rw', isa => Str, lazy_build => 1);
 
 # this is largely stolen from CPANPLUS::Dist::RPM...  in need of some serious
 # refactoring but works for now.

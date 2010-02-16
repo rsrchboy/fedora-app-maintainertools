@@ -49,22 +49,27 @@ our $VERSION = '0.002';
 # required
 
 # e.g. "Moose", "Catalyst-Runtime", etc
-has dist => (is => 'ro', isa => 'Str', required => 1);
+#has dist => (is => 'ro', isa => 'Str', required => 1);
+has dist => (is => 'ro', isa => 'Str', lazy_build => 1);
+
+# we're required for new specs, but not for updates, so I don't want to mark
+# the attribute as required, but I do want things to blow up if it hasn't been
+# set.  So for descendents that can get it elsewhere can just override
+# _build_dist() appropriately.
+
+sub _build_dist { die 'dist is not set, and is required!' }
 
 #############################################################################
 # CPAN bits, etc
 
-# FIXME
-has conf => (is => 'rw', isa => 'Config::Tiny', lazy_build => 1);
-sub _build_conf { Config::Tiny->read('auto.ini') || Config::Tiny->new }
+has conf   => (is => 'rw', isa => 'Config::Tiny', lazy_build => 1);
+has mm     => (is => 'ro', isa => 'CPAN::MetaMuncher', lazy_build => 1);
+has cpanp  => (is => 'ro', isa => CPBackend, lazy_build => 1);
+has module => (is => 'ro', isa => CPModule,  lazy_build => 1);
 
-has mm => (is => 'ro', isa => 'CPAN::MetaMuncher', lazy_build => 1);
-
-has cpanp     => (is => 'ro', isa => CPBackend, lazy_build => 1);
-has module    => (is => 'ro', isa => CPModule,  lazy_build => 1);
-
-sub _build_mm { CPAN::MetaMuncher->new(module => shift->module)     }
-sub _build_cpanp  { require CPANPLUS::Backend; CPANPLUS::Backend->new       }
+sub _build_conf   { Config::Tiny->read('auto.ini') || Config::Tiny->new }
+sub _build_mm     { CPAN::MetaMuncher->new(module => shift->module)     }
+sub _build_cpanp  { require CPANPLUS::Backend; CPANPLUS::Backend->new   }
 sub _build_module { my $s = shift; $s->cpanp->parse_module(module => $s->dist) }
 
 #############################################################################
@@ -145,7 +150,6 @@ sub _build_source0  {
 sub _build_is_noarch {
     my $self = shift @_;
 
-    #my $files = $self->module->parent->status->files;
     my $files = $self->module->status->files;
     return do { first { /\.(c|xs)$/i } @$files } ? 0 : 1;
 }
@@ -176,17 +180,37 @@ sub _build_template { 'perl/spec.tt2' }
 sub _build_output {
     my $self = shift @_;
 
-    my $output = $self->_tt2->process($self->template->stringify, {
-        data      => $self,
-        rpm_date  => DateTime->now->strftime('%a %b %d %Y'),
-        changelog => join("\n", $self->changelog),
+    my $output;
+    my $res = $self->_tt2->process(
+        $self->template->stringify, {
+            data      => $self,
+            rpm_date  => DateTime->now->strftime('%a %b %d %Y'),
+         },
+         \$output,
+     );
 
-        # FIXME
-        packager => 'Chris Weyl <cweyl@alumni.drew.edu>',
-     });
-
-     die $self->_tt2->error . "\n" unless $output;
+     die $self->_tt2->error . "\n" unless $res;
      return $output;
+}
+
+#############################################################################
+# srpm/rpm building...
+
+
+sub build_srpm {
+
+    die "build_srpm not implemented\n";
+
+    my ($dir, $rpmbuild, $spec, $buildrpm);
+
+    # From Fedora CVS Makefile.common.
+    system($rpmbuild, "--define", "_sourcedir $dir",
+                          "--define", "_builddir $dir",
+                          "--define", "_srcrpmdir $dir",
+                          "--define", "_rpmdir $dir",
+                          #($buildrpm ? "-ba" : ("-bs", "--nodeps")),
+                          $spec);
+
 }
 
 __PACKAGE__->meta->make_immutable;

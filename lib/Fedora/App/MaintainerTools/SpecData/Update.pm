@@ -241,9 +241,6 @@ sub _build_output {
             data      => $self,
             rpm_date  => DateTime->now->strftime('%a %b %d %Y'),
             middle => join("\n", @{$self->middle}),
-
-            # FIXME
-            packager => 'Chris Weyl <cweyl@alumni.drew.edu>',
         },
         \$output,
     );
