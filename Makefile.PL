@@ -26,7 +26,7 @@ requires 'CPANPLUS::Backend';
 requires 'DateTime';
 requires 'File::Copy';
 requires 'Path::Class';
-requires 'RPM::Spec';
+requires 'RPM::Spec' => '0.03';
 requires 'RPM::VersionCompare';
 requires 'YAML::Tiny';
 requires 'Pod::POM';
