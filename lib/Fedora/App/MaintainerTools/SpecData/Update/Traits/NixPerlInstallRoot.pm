@@ -1,12 +1,10 @@
 #############################################################################
 #
-# Moose types for us to use. 
-#
 # Author:  Chris Weyl (cpan:RSRCHBOY), <cweyl@alumni.drew.edu>
 # Company: No company, personal work
-# Created: 06/16/2009
+# Created: 02/16/2010
 #
-# Copyright (c) 2009  <cweyl@alumni.drew.edu>
+# Copyright (c) 2010  <cweyl@alumni.drew.edu>
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -15,63 +13,56 @@
 #
 #############################################################################
 
-package Fedora::App::MaintainerTools::Types;
+package Fedora::App::MaintainerTools::SpecData::Update::Traits::NixPerlInstallRoot;
 
-use MooseX::Types -declare => [ qw{ CPBackend CPModule SpecData } ];
-use MooseX::Types::Moose ':all';
+use Moose::Role;
+use namespace::autoclean;
 
-use namespace::clean -except => [ 'meta', 'CPBackend', 'CPModule', 'SpecData' ];
+around _build_middle => sub {
+    my $orig = shift @_;
+    my $self = shift @_;
 
-our $VERSION = '0.002';
+    my @middle = @{ $self->$orig(@_) };
 
-subtype CPBackend,
-    as Object,
-    where   { $_->isa('CPANPLUS::Backend')   },
-    message { 'Object !isa CPANPLUS::Backend' },
-    ;
+    for (@middle) {
 
-subtype CPModule,
-    as Object,
-    where { $_->isa('CPANPLUS::Module')     },
-    message { 'Object !isa CPANPLUS::Module' },
-    ;
+        if ($_ eq 'make pure_install PERL_INSTALL_ROOT=%{buildroot}') {
 
-subtype SpecData,
-    as Object,
-    where   { $_->isa('Fedora::App::MaintainerTools::SpecData')    },
-    message { 'Object !isa Fedora::App::MaintainerTools::SpecData' },
-    ;
+            $_ = 'make pure_install DESTDIR=%{buildroot}';
+            $self->add_changelog('- PERL_INSTALL_ROOT => DESTDIR');
+            last;
+        }
+    }
 
-__PACKAGE__->meta->make_immutable;
+    return \@middle;
+};
+
+1;
 
 __END__
 
 =head1 NAME
 
-Fedora::App::MaintainerTools::Types - Moose types we need
-
-=head1 SYNOPSIS
-
-    use Fedora::App::MaintainerTools::Types ':all';
-
-    has foo => (isa => CPBackend, ...);
+Fedora::App::MaintainerTools::SpecData::Update::Traits::NixPerlInstallRoot -
+spec update trait
 
 =head1 DESCRIPTION
 
-Two additional types we use; broken out here due to the global nature of the
-Moose type system.
+This trait wraps the _build_middle() method to check for the existence of
+PERL_INSTALL_ROOT, and to replace it with DESTDIR if so.
 
- =head1 SEE ALSO
+This could really be handled in
+L<Fedora::App::MaintainerTools::SpecData::Update> itself, but it seemed like a
+nice demo of how to create/use these types of plugins.
 
-L<MooseX::Types>
-
-
+=head1 AUTHOR
 
 Chris Weyl  <cweyl@alumni.drew.edu>
 
+
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (c) 2009  <cweyl@alumni.drew.edu>
+Copyright (c) 2010  <cweyl@alumni.drew.edu>
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -84,11 +75,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the 
+License along with this library; if not, write to the
 
     Free Software Foundation, Inc.
     59 Temple Place, Suite 330
     Boston, MA  02111-1307  USA
 
 =cut
+
 

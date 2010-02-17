@@ -19,6 +19,7 @@ requires 'Moose';
 requires 'MooseX::App::Cmd';
 requires 'MooseX::AttributeHelpers';
 requires 'MooseX::Log::Log4perl';
+requires 'MooseX::Traits' => '0.08';
 requires 'MooseX::Types';
 requires 'MooseX::Types::Path::Class';
 

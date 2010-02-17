@@ -28,6 +28,7 @@ use namespace::autoclean;
 
 use Fedora::App::MaintainerTools::Types ':all';
 
+with 'MooseX::Traits';
 with 'Fedora::App::MaintainerTools::Role::Template';
 
 use CPAN::MetaMuncher;

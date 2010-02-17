@@ -25,6 +25,9 @@ use Path::Class;
 
 extends 'MooseX::App::Cmd::Command'; 
 with 'Fedora::App::MaintainerTools::Role::Template';
+with 'Fedora::App::MaintainerTools::Role::SpecUtils';
+
+sub _specdata_base_class { 'Fedora::App::MaintainerTools::SpecData::Update' }
 
 # classes we need but don't want to load a compile-time
 my @CLASSES = qw{
@@ -48,10 +51,10 @@ sub run {
 
     for my $pkg (@$args) {
 
-        my $data =
-            Fedora::App::MaintainerTools::SpecData::Update->new(
-                spec => RPM::Spec->new(specfile => "$pkg"),
-            );
+        my $data = $self
+            ->_specdata_class
+            ->new(spec => RPM::Spec->new(specfile => "$pkg"))
+            ;
 
         print $data->output;
     }
