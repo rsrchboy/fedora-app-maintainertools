@@ -9,7 +9,7 @@ Release:        [% data.release %]%{?dist}
 License:        [% data.license || spec.license %]
 Group:          Development/Libraries
 Source0:        [% data.source0 %] 
-URL:            http://search.cpan.org/dist/[% data.distname %]
+URL:            [% data.url %]
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:       perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 [% IF data.is_noarch -%]
