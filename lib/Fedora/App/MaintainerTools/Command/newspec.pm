@@ -56,6 +56,8 @@ sub run {
             #Fedora::App::MaintainerTools::SpecData::New->new(dist => $pkg);
 
         print $data->output;
+
+        $data->build_srpm;
     }
 
     return;
