@@ -21,7 +21,7 @@ use Moose::Role;
 use MooseX::Types::Moose ':all';
 use namespace::autoclean;
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 has _bz => (
     # FIXME -- need a better type

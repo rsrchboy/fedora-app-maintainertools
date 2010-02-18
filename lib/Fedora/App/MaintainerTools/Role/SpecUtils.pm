@@ -26,7 +26,7 @@ use MooseX::Traits::Util 'new_class_with_traits';
 # debugging
 #use Smart::Comments '###', '####';
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 requires '_specdata_base_class';
 

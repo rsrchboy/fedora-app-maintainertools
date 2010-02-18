@@ -26,7 +26,7 @@ use IO::Prompt;
 
 extends 'MooseX::App::Cmd::Command';
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 my @CLASSES = qw{
     Fedora::Bodhi

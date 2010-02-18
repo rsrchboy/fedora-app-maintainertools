@@ -39,7 +39,7 @@ use RPM::VersionSort;
 
 with 'MooseX::Log::Log4perl';
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 # debugging
 #use Smart::Comments '###', '####';
