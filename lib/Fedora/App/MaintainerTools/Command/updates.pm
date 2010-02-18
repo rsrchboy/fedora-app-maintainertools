@@ -38,7 +38,9 @@ my @CLASSES = qw{
 sub execute {
     my ($self, $opt, $args) = @_;
 
-    #$self->app->log->info('Beginning updatespec run.');
+    #$self->log->info('Beginning updatespec run.');
+
+	die "This command isn't quite unbroken yet.\n";
 
     Class::MOP::load_class($_) for @CLASSES;
 

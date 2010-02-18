@@ -1,12 +1,12 @@
 #############################################################################
 #
-# The application class...
+# Simple role to provide access to Bugzilla
 #
 # Author:  Chris Weyl (cpan:RSRCHBOY), <cweyl@alumni.drew.edu>
 # Company: No company, personal work
 # Created: 06/16/2009
 #
-# Copyright (c) 2009  <cweyl@alumni.drew.edu>
+# Copyright (c) 2009-2010  <cweyl@alumni.drew.edu>
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -15,49 +15,38 @@
 #
 #############################################################################
 
-package Fedora::App::MaintainerTools;
+package Fedora::App::MaintainerTools::Role::Bugzilla;
 
-use Moose;
+use Moose::Role;
+use MooseX::Types::Moose ':all';
 use namespace::autoclean;
 
 our $VERSION = '0.003';
 
-extends 'MooseX::App::Cmd';
+with 'MooseX::Log::Log4perl';
 
-__PACKAGE__->meta->make_immutable;
+## FIXME should do some sort of initialization here
+
+1;
 
 __END__
 
 =head1 NAME
 
-Fedora::App::MaintainerTools - Main application class
+Fedora::App::MaintainerTools::Role::Loggger - Provides logger access
 
 =head1 DESCRIPTION
 
-This is the main application class for MaintainerTools; we don't do much
-except extend L<MooseX::App::Cmd> as required.
-
-More extensive documentation should be available as part of the man page
-for the command line app, L<maintainertool>.
+This is a L<Moose::Role> that command classes should consume in order to
+log messages via L<Log::Log4perl>.
 
 =head1 SEE ALSO
 
-L<maintainertool>
-
-=head1 BUGS AND LIMITATIONS
-
-This is still a VERY early release; while I don't believe it'll eat any of
-your files, if it does, you get to keep both pieces :)
-
-Please report problems to Chris Weyl <cweyl@alumni.drew.edu>, or (preferred)
-to this package's RT tracker at E<bug-Fedora-App-MaintainerTools@rt.cpan.org>.
-
-Patches are welcome.
+L<Log::Log4perl>
 
 =head1 AUTHOR
 
 Chris Weyl  <cweyl@alumni.drew.edu>
-
 
 =head1 LICENSE AND COPYRIGHT
 
@@ -81,5 +70,4 @@ License along with this library; if not, write to the
     Boston, MA  02111-1307  USA
 
 =cut
-
 
