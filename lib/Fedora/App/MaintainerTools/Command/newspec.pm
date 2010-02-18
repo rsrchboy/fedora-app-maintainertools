@@ -40,7 +40,7 @@ has package => (is => 'ro', isa => Bool, default => 0);
 sub command_names { 'new-spec' }
 sub _specdata_base_class { 'Fedora::App::MaintainerTools::SpecData::New' }
 
-sub run {
+sub execute {
     my ($self, $opt, $args) = @_;
 
     $self->app->log->info('Beginning new-spec run.');

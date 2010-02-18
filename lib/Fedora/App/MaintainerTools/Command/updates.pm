@@ -35,7 +35,7 @@ my @CLASSES = qw{
     DateTime
 };
 
-sub run {
+sub execute {
     my ($self, $opt, $args) = @_;
 
     #$self->app->log->info('Beginning updatespec run.');

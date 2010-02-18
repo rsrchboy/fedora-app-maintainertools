@@ -33,7 +33,7 @@ has _plugins => (
 
 sub _build__plugins { Fedora::App::MaintainerTools::Plugins->new }
 
-before run => sub {
+before execute => sub {
 
     Class::MOP::load_class($_) for qw{
         Fedora::App::MaintainerTools::Plugins

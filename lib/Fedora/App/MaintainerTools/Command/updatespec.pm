@@ -42,7 +42,7 @@ has package => (is => 'ro', isa => Bool, default => 0);
 
 sub command_names { 'update-spec' }
 
-sub run {
+sub execute {
     my ($self, $opt, $args) = @_;
 
     $self->app->log->info('Beginning update-spec run.');

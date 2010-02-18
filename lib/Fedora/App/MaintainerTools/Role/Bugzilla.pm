@@ -31,7 +31,7 @@ has _bz => (
 
 sub _build__bz { Fedora::Bugzilla->new }
 
-before run => sub {
+before execute => sub {
 
     Class::MOP::load_class($_) for qw{
         Fedora::Bugzilla

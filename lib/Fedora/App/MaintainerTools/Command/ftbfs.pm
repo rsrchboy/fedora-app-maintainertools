@@ -32,7 +32,7 @@ with 'Fedora::App::MaintainerTools::Role::Bugzilla';
 
 our $VERSION = '0.003';
 
-sub run {
+sub execute {
     my ($self, $opt, $args) = @_;
 
     my $bugs = $self->find_my_ftbfs_bugs;
