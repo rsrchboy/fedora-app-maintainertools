@@ -28,6 +28,7 @@ use namespace::autoclean;
 
 use Fedora::App::MaintainerTools::Types ':all';
 
+with 'MooseX::Log::Log4perl';
 with 'MooseX::Traits';
 with 'Fedora::App::MaintainerTools::Role::Template';
 
@@ -35,6 +36,7 @@ use CPAN::MetaMuncher;
 use Config::Tiny;
 use DateTime;
 use File::Copy 'cp';
+use File::Slurp;
 use List::Util 'first';
 use List::MoreUtils 'any';
 use Path::Class;
@@ -63,15 +65,20 @@ sub _build_dist { die 'dist is not set, and is required!' }
 #############################################################################
 # CPAN bits, etc
 
-has conf   => (is => 'rw', isa => 'Config::Tiny', lazy_build => 1);
-has mm     => (is => 'ro', isa => 'CPAN::MetaMuncher', lazy_build => 1);
-has cpanp  => (is => 'ro', isa => CPBackend, lazy_build => 1);
-has module => (is => 'ro', isa => CPModule,  lazy_build => 1);
+has conf        => (is => 'rw', isa => 'Config::Tiny', lazy_build => 1);
+has mm          => (is => 'ro', isa => 'CPAN::MetaMuncher', lazy_build => 1);
+has cpanp       => (is => 'ro', isa => CPBackend, lazy_build => 1);
+has module      => (is => 'ro', isa => CPModule,  lazy_build => 1);
+has tarball     => (is => 'ro', lazy_build => 1, isa => File, coerce => 1);
+has extract_dir => (is => 'ro', lazy_build => 1, isa => Dir, coerce => 1);
 
-sub _build_conf   { Config::Tiny->read('auto.ini') || Config::Tiny->new }
-sub _build_mm     { CPAN::MetaMuncher->new(module => shift->module)     }
-sub _build_cpanp  { require CPANPLUS::Backend; CPANPLUS::Backend->new   }
-sub _build_module { my $s = shift; $s->cpanp->parse_module(module => $s->dist) }
+sub _build_conf    { Config::Tiny->read('auto.ini') || Config::Tiny->new }
+sub _build_mm      { CPAN::MetaMuncher->new(module => shift->module)     }
+sub _build_cpanp   { require CPANPLUS::Backend; CPANPLUS::Backend->new   }
+sub _build_module  { my $s = shift; $s->cpanp->parse_module(module => $s->dist) }
+sub _build_tarball { shift->module->status->fetch }
+sub _build_extract_dir
+    { my $m = shift->module; $m->status->extract || $m->extract }
 
 #############################################################################
 # generated spec data, etc
@@ -155,13 +162,7 @@ sub _build_is_noarch {
     return do { first { /\.(c|xs)$/i } @$files } ? 0 : 1;
 }
 
-sub _build_license {
-    my $self = shift @_;
-
-    warn 'not implemented!';
-
-    return 'CHECK(GPL+ or Artistic)';
-}
+sub _build_license { warn 'not implemented!'; 'CHECK(GPL+ or Artistic)' }
 
 sub _build_summary         { die 'not implemented' }
 sub _build__changelog      { die 'not implemented' }
@@ -197,21 +198,42 @@ sub _build_output {
 #############################################################################
 # srpm/rpm building...
 
+has filename => (
+    is => 'rw', isa => File, lazy_build => 1, coerce => 1,
+    trigger => sub { shift->clear_to_file },
+);
+
+after 'clear_filename' => sub { shift->clear_to_file };
+sub _build_filename { 'perl-' . shift->dist . '.spec' }
+
+has to_file => (is => 'ro', isa => File, lazy_build => 1, coerce => 1);
+
+sub _build_to_file {
+    my $self = shift @_;
+
+    my $filename = $self->filename;
+    write_file "$filename" => $self->output;
+
+    $self->log->debug("wrote spec out to: $filename");
+    return $filename;
+}
 
 sub build_srpm {
+    my $self = shift @_;
 
-    die "build_srpm not implemented\n";
+    my ($dir, $spec) = (dir->absolute, $self->to_file);
+    local $ENV{$_} for qw{PERL5LIB PERL_MM_OPTS MODULEBUILDRC};
 
-    my ($dir, $rpmbuild, $spec, $buildrpm);
+    cp $self->tarball => "$dir";
 
     # From Fedora CVS Makefile.common.
-    system($rpmbuild, "--define", "_sourcedir $dir",
-                          "--define", "_builddir $dir",
-                          "--define", "_srcrpmdir $dir",
-                          "--define", "_rpmdir $dir",
-                          #($buildrpm ? "-ba" : ("-bs", "--nodeps")),
-                          $spec);
-
+    $self->log->warn('running rpmbuild...');
+    system "rpmbuild --define '_sourcedir $dir' "
+        . "--define '_builddir $dir' "
+        . "--define '_srcrpmdir $dir' "
+        . "--define '_rpmdir $dir' "
+        . "-bs --nodeps $spec "
+        ;
 }
 
 __PACKAGE__->meta->make_immutable;

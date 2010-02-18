@@ -44,6 +44,7 @@ sub _build_name    { shift->spec->name }
 sub _build_license { warn 'not checking license'; shift->spec->license }
 sub _build_version { shift->mm->data->{version} }
 sub _build_summary { shift->spec->summary }
+sub _build_url     { shift->spec->url }
 
 sub _build_dist    { (my $s = shift->name) =~ s/^perl-//; $s }
 
