@@ -21,7 +21,6 @@ use 5.010;
 
 use Moose;
 use namespace::autoclean;
-use Fedora::App::MaintainerTools::UpdateData;
 use IO::Prompt;
 
 extends 'MooseX::App::Cmd::Command';
