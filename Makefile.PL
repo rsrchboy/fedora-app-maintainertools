@@ -8,6 +8,7 @@ author   'Chris Weyl <cweyl@alumni.drew.edu>';
 license  'perl';
 
 requires_external_bin 'rpm';
+requires_external_bin 'createrepo';
 
 requires 'autodie';
 requires 'namespace::clean';
@@ -15,13 +16,15 @@ requires 'namespace::clean';
 # silent autodie dep
 requires 'IPC::System::Simple';
 
-requires 'Moose';
+# min version for native traits
+requires 'Moose' => '0.90';
 requires 'MooseX::App::Cmd';
 requires 'MooseX::AttributeHelpers';
 requires 'MooseX::Log::Log4perl';
 requires 'MooseX::Traits' => '0.08';
 requires 'MooseX::Types';
 requires 'MooseX::Types::Path::Class';
+requires 'MooseX::Types::URI';
 
 requires 'CPANPLUS::Backend';
 requires 'DateTime';
@@ -29,11 +32,14 @@ requires 'File::Copy';
 requires 'File::Slurp';
 requires 'Path::Class';
 requires 'RPM::Spec' => '0.04';
-requires 'RPM::VersionSort';
+requires 'RPM::VersionSort' => '1.00';
 requires 'YAML::Tiny';
 requires 'Pod::POM';
 requires 'Pod::POM::View::Text';
 requires 'Software::LicenseUtils';
+
+# metamuncher
+requires 'JSON';
 
 # for ftbfs, etc
 requires 'Fedora::Bugzilla' => '0.13';

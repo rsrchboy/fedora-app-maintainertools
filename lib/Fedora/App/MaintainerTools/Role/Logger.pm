@@ -15,7 +15,7 @@
 #
 #############################################################################
 
-package Fedora::App::MaintainerTools::Role::Bugzilla;
+package Fedora::App::MaintainerTools::Role::Logger;
 
 use Moose::Role;
 use MooseX::Types::Moose ':all';
