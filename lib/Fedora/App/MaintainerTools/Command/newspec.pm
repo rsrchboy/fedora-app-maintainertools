@@ -56,9 +56,9 @@ sub execute {
         my $data = $self->_specdata_class->new(dist => $pkg);
             #Fedora::App::MaintainerTools::SpecData::New->new(dist => $pkg);
 
-        print $data->output;
-
-        $data->build_srpm;
+        #print $data->output;
+        #$data->build_srpm;
+        $self->build_srpm($data);
     }
 
     return;

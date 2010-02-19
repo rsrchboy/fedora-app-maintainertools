@@ -59,6 +59,31 @@ sub _build__specdata_class {
         ;
 }
 
+sub build_srpm { shift->('-bs --nodeps', @_) }
+sub build_rpm  { shift->('-ba',          @_) }
+
+sub _build_cmd {
+	my ($self, $rpm_opts, $spec) = @_;
+
+    my ($dir, $specfile, $rpm_opts) = (dir->absolute, $spec->to_file);
+    local $ENV{$_} for qw{ PERL5LIB PERL_MM_OPTS MODULEBUILDRC };
+
+    cp $spec->tarball => "$dir";
+
+	$rpm_opts .= " --define '$_ $dir'"
+		for qw{ _sourcedir _builddir _srcrpmdir _rpmdir };
+
+    # From Fedora CVS Makefile.common.
+    $self->log->warn('running rpmbuild...');
+    system "rpmbuild --define '_sourcedir $dir' "
+        . "--define '_builddir $dir' "
+        . "--define '_srcrpmdir $dir' "
+        . "--define '_rpmdir $dir' "
+        . "-bs --nodeps $specfile "
+        ;
+}
+
+
 1;
 
 __END__
