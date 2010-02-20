@@ -59,6 +59,7 @@ sub execute {
         #print $data->output;
         #$data->build_srpm;
         $self->build_srpm($data);
+        $self->build_rpm($data);
     }
 
     return;
