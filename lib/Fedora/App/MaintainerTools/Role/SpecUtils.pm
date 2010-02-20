@@ -20,6 +20,8 @@ package Fedora::App::MaintainerTools::Role::SpecUtils;
 use Moose::Role;
 use namespace::autoclean;
 use MooseX::Types::Moose ':all';
+use File::Copy 'cp';
+use Path::Class;
 
 use MooseX::Traits::Util 'new_class_with_traits';
 
@@ -71,6 +73,28 @@ sub _compose {
 }
 
 #############################################################################
+# rpmbuild methods
+
+sub build_srpm { shift->_build_cmd('-bs --nodeps', @_) }
+sub build_rpm  { shift->_build_cmd('-ba',          @_) }
+
+sub _build_cmd {
+	my ($self, $rpm_opts, $spec) = @_;
+
+    my ($dir, $specfile) = (dir->absolute, $spec->to_file);
+    local $ENV{$_} for qw{ PERL5LIB PERL_MM_OPTS MODULEBUILDRC };
+
+    cp $spec->tarball => "$dir";
+
+	$rpm_opts .= " --define '$_ $dir'"
+		for qw{ _sourcedir _builddir _srcrpmdir _rpmdir };
+
+    # From Fedora CVS Makefile.common.
+    $self->log->warn('running rpmbuild...');
+	system "rpmbuild $rpm_opts $specfile";
+
+    return;
+}
 
 1;
 

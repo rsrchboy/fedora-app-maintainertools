@@ -24,6 +24,7 @@ use namespace::autoclean;
 use Path::Class;
 
 extends 'MooseX::App::Cmd::Command';
+with 'Fedora::App::MaintainerTools::Role::Logger';
 with 'Fedora::App::MaintainerTools::Role::Template';
 with 'Fedora::App::MaintainerTools::Role::SpecUtils';
 
@@ -42,7 +43,7 @@ sub command_names { 'new-spec' }
 sub execute {
     my ($self, $opt, $args) = @_;
 
-    $self->app->log->info('Beginning new-spec run.');
+    $self->log->info('Beginning new-spec run.');
 
     Class::MOP::load_class($_) for @CLASSES;
 
@@ -54,9 +55,10 @@ sub execute {
         my $data = $self->_new_spec_class->new(dist => $pkg);
             #Fedora::App::MaintainerTools::SpecData::New->new(dist => $pkg);
 
-        print $data->output;
-
-        $data->build_srpm;
+        #print $data->output;
+        #$data->build_srpm;
+        $self->build_srpm($data);
+        $self->build_rpm($data);
     }
 
     return;

@@ -21,7 +21,6 @@ use 5.010;
 
 use Moose;
 use namespace::autoclean;
-use Fedora::App::MaintainerTools::UpdateData;
 use IO::Prompt;
 
 extends 'MooseX::App::Cmd::Command';
@@ -38,7 +37,9 @@ my @CLASSES = qw{
 sub execute {
     my ($self, $opt, $args) = @_;
 
-    #$self->app->log->info('Beginning updatespec run.');
+    #$self->log->info('Beginning updatespec run.');
+
+	die "This command isn't quite unbroken yet.\n";
 
     Class::MOP::load_class($_) for @CLASSES;
 
