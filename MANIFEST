@@ -19,9 +19,12 @@ lib/CPAN/MetaMuncher.pm
 lib/Fedora/App/MaintainerTools.pm
 lib/Fedora/App/MaintainerTools/Command/ftbfs.pm
 lib/Fedora/App/MaintainerTools/Command/newspec.pm
+lib/Fedora/App/MaintainerTools/Command/privaterepo.pm
 lib/Fedora/App/MaintainerTools/Command/updates.pm
 lib/Fedora/App/MaintainerTools/Command/updatespec.pm
+lib/Fedora/App/MaintainerTools/LocalRepo.pm
 lib/Fedora/App/MaintainerTools/Role/Bugzilla.pm
+lib/Fedora/App/MaintainerTools/Role/Logger.pm
 lib/Fedora/App/MaintainerTools/Role/Plugins.pm
 lib/Fedora/App/MaintainerTools/Role/SpecUtils.pm
 lib/Fedora/App/MaintainerTools/Role/Template.pm
