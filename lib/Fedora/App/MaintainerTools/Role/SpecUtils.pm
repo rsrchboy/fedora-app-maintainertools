@@ -28,18 +28,27 @@ use MooseX::Traits::Util 'new_class_with_traits';
 
 our $VERSION = '0.003';
 
-requires '_specdata_base_class';
+#############################################################################
+# spec class composition...
 
-has _specdata_class =>  (is => 'rw', isa => Str, lazy_build => 1);
-has _specdata_traits => (is => 'rw', isa => 'ArrayRef[Str]', lazy_build => 1);
+# If this grows any larger, let's refactor it out into a parameterized role.
 
-sub _build__specdata_traits {
-    my $self = shift @_;
+has _new_spec_class =>  (is => 'rw', isa => Str, lazy_build => 1);
+has _new_spec_traits => (is => 'rw', isa => 'ArrayRef[Str]', lazy_build => 1);
+has _update_spec_class =>  (is => 'rw', isa => Str, lazy_build => 1);
+has _update_spec_traits => (is => 'rw', isa => 'ArrayRef[Str]', lazy_build => 1);
+
+sub _build__new_spec_traits { shift->_find_traits('New') }
+sub _build__new_spec_class  { shift->_compose('New') }
+sub _build__update_spec_traits { shift->_find_traits('Update') }
+sub _build__update_spec_class  { shift->_compose('Update') }
+
+sub _find_traits {
+    my ($self, $part) = @_;
 
     Class::MOP::load_class('Module::Find');
 
-    #my $class = 'Fedora::App::MaintainerTools::SpecData::New';
-    my $class = $self->_specdata_base_class;
+    my $class = "Fedora::App::MaintainerTools::SpecData::$part";
     my @traits = Module::Find::findsubmod($class.'::Traits');
 
     ### $class
@@ -47,17 +56,21 @@ sub _build__specdata_traits {
     return \@traits;
 }
 
-sub _build__specdata_class {
-    my $self = shift @_;
+sub _compose {
+    my ($self, $part) = @_;
+
+    my $att = lc "_$part" . '_spec_traits';
 
     return
         new_class_with_traits(
-            $self->_specdata_base_class,
-            @{ $self->_specdata_traits },
+            "Fedora::App::MaintainerTools::SpecData::$part",
+            @{ $self->$att },
         )
         ->name
         ;
 }
+
+#############################################################################
 
 1;
 

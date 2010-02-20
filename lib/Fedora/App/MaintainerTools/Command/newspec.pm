@@ -38,7 +38,6 @@ our $VERSION = '0.003';
 has package => (is => 'ro', isa => Bool, default => 0);
 
 sub command_names { 'new-spec' }
-sub _specdata_base_class { 'Fedora::App::MaintainerTools::SpecData::New' }
 
 sub execute {
     my ($self, $opt, $args) = @_;
@@ -52,7 +51,7 @@ sub execute {
         # FIXME this might not be the best approach.
         $pkg =~ s/::/-/g;
 
-        my $data = $self->_specdata_class->new(dist => $pkg);
+        my $data = $self->_new_spec_class->new(dist => $pkg);
             #Fedora::App::MaintainerTools::SpecData::New->new(dist => $pkg);
 
         print $data->output;

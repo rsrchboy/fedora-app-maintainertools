@@ -27,8 +27,6 @@ extends 'MooseX::App::Cmd::Command';
 with 'Fedora::App::MaintainerTools::Role::Template';
 with 'Fedora::App::MaintainerTools::Role::SpecUtils';
 
-sub _specdata_base_class { 'Fedora::App::MaintainerTools::SpecData::Update' }
-
 # classes we need but don't want to load a compile-time
 my @CLASSES = qw{
     DateTime
@@ -52,7 +50,7 @@ sub execute {
     for my $pkg (@$args) {
 
         my $data = $self
-            ->_specdata_class
+            ->_update_spec_class
             ->new(spec => RPM::Spec->new(specfile => "$pkg"))
             ;
 
