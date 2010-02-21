@@ -176,16 +176,16 @@ sub _build__requires {
         # if we're here, it's a new BR
         $require{$r} = $new;
         push @cl, "- added a new req on $r (version $new)";
-        $self->add_changelog("- added a new req on $r (version $new)");
+        #$self->add_changelog("- added a new req on $r (version $new)");
     }
 
-    # delete stale build requirements
+    # delete stale requirements
     PURGE_R_LOOP:
-    #for my $req ($data->requires) {
     for my $req (sort keys %require) {
 
         # make sure it's a _perl_ requires
         next PURGE_R_LOOP unless $req =~ /^perl\(/;
+        next PURGE_R_LOOP if exists $self->conf->{add_requires}->{$req};
 
         # check to see META.yml lists it as a dep.  if not, purge.
         unless ($mm->has_rpm_require_on($req)) {
@@ -193,6 +193,16 @@ sub _build__requires {
             delete $require{$req};
             push @cl, "- dropped old requires on $req";
         }
+    }
+
+    for my $manual_req (keys %{$self->conf->{add_requires}}) {
+
+        # FIXME should check versioning too
+        next if exists $require{$manual_req};
+
+        my $ver = $self->conf->{add_requires}->{$manual_req};
+        $require{$manual_req} = $ver;
+        push @cl, "- added manual requires on $manual_req";
     }
 
     $self->add_changelog(@cl);
