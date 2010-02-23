@@ -47,7 +47,7 @@ sub _build_version { shift->mm->data->{version} }
 sub _build_summary { shift->spec->summary }
 sub _build_url     { shift->spec->url }
 
-sub _build_dist    { (my $s = shift->name) =~ s/^perl-//; $s }
+sub _build_dist    { (my $_ = shift->name) =~ s/^perl-//; s/\s*$//; $_ }
 
 sub _build__changelog {
     [ "- update by Fedora::App::MaintainerTools $Fedora::App::MaintainerTools::VERSION" ]
