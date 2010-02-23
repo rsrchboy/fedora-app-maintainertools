@@ -32,7 +32,7 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%doc [% docfiles %]
+%doc [% data.docfiles.join(" ") %]
 [% IF (data.is_noarch) -%]
 %{perl_vendorlib}/*
 [% ELSE -%]
