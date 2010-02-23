@@ -76,7 +76,7 @@ sub _build_conf    { Config::Tiny->read('auto.ini') || Config::Tiny->new }
 sub _build_mm      { CPAN::MetaMuncher->new(module => shift->module)     }
 sub _build_cpanp   { require CPANPLUS::Backend; CPANPLUS::Backend->new   }
 sub _build_module  { my $s = shift; $s->cpanp->parse_module(module => $s->dist) }
-sub _build_tarball { shift->module->status->fetch }
+sub _build_tarball { my $s = shift; $s->module->status->fetch || $s->module->fetch }
 sub _build_extract_dir
     { my $m = shift->module; $m->status->extract || $m->extract }
 
@@ -150,7 +150,7 @@ sub _build_source0  {
 
     return 'http://search.cpan.org/CPAN/'
         . $self->module->path . q{/}
-        . $self->dist . q{-} . $self->version . q{.}
+        . $self->dist . '-%{version}.'
         . $self->module->package_extension
         ;
 }
