@@ -21,7 +21,10 @@ use Moose;
 use MooseX::Types::Moose ':all';
 use MooseX::Types::Path::Class ':all';
 use namespace::autoclean;
+use File::Copy 'cp';
 use Path::Class;
+
+use autodie 'system';
 
 extends 'MooseX::App::Cmd::Command';
 with 'Fedora::App::MaintainerTools::Role::Logger';

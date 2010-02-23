@@ -21,6 +21,7 @@ use Moose;
 use MooseX::Types::Moose ':all';
 use MooseX::Types::Path::Class ':all';
 use namespace::autoclean;
+use File::Copy 'cp';
 use Path::Class;
 
 extends 'MooseX::App::Cmd::Command'; 
@@ -45,8 +46,8 @@ sub execute {
     my ($self, $opt, $args) = @_;
 
     $self->log->info('Beginning update-spec run.');
-
     Class::MOP::load_class($_) for @CLASSES;
+    my $dir = dir->absolute;
 
     for my $pkg (@$args) {
 
@@ -55,10 +56,35 @@ sub execute {
             ->new(spec => RPM::Spec->new(specfile => "$pkg"))
             ;
 
-        print $data->output;
+        my $tarball = $data->tarball;
+        cp "$tarball" => "$dir";
+
+        if ($self->stdout) {
+
+            print $data->output;
+        }
+        else {
+
+            $data->to_file;
+        }
+
+        $self->_do_fedora_bits($data);
     }
 
     return;
+}
+
+sub _do_fedora_bits {
+    my ($self, $data) = @_;
+
+    # check to see if we have a sources file
+    return unless -f 'sources';
+
+    my $tarball = $data->tarball;
+    system "make new-source FILES='$tarball'";
+    system "cvs diff | colordiff";
+
+    # FIXME koji build bits here...
 }
 
 __PACKAGE__->meta->make_immutable;
