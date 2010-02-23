@@ -31,6 +31,14 @@ use MooseX::Traits::Util 'new_class_with_traits';
 our $VERSION = '0.003';
 
 #############################################################################
+# command options...
+
+has stdout => (
+    is => 'ro', isa => Bool, default => 0,
+    documentation => 'write the spec to STDOUT rather than a .spec file',
+);
+
+#############################################################################
 # spec class composition...
 
 # If this grows any larger, let's refactor it out into a parameterized role.
