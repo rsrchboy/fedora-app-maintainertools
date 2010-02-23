@@ -27,6 +27,7 @@ use Path::Class;
 use Pod::POM;
 use Pod::POM::View::Text;
 use Text::Autoformat;
+use RPM::VersionSort;
 
 extends 'Fedora::App::MaintainerTools::SpecData';
 
@@ -57,6 +58,37 @@ sub _build__changelog {
 
 # these are pretty much just pulled over from the old Plugins system...  They
 # need refactoring, but work for now.
+
+sub _build_epoch   {
+    my $self = shift @_;
+
+    my $epoch = $self->spec->epoch;
+
+    ##############################################################
+    # epoch checking
+
+    my ($old_v, $v) = ($self->spec->version, $self->version);
+
+    if (rpmvercmp($old_v, $v) == 1) {
+
+        # rpm is going to think that the old version is larger than the new
+        # one, so we're going to need to fiddle with the epoch here
+        if ($epoch) {
+
+            $epoch++;
+            #@lines = map { /^Epoch:/i && $_ =~ s/\S+$/$e/; $_ } @lines;
+            $self->add_changelog("- Bump epoch to $epoch ($old_v => $v)");
+        }
+        else {
+
+            #@lines = map { /^Version:/i ? ('Epoch: 1', $_) : $_ } @lines;
+            $epoch = 1;
+            $self->add_changelog("- Add epoch of 1 ($old_v => $v)");
+        }
+    }
+
+    return $epoch;
+}
 
 sub _build__build_requires {
     #my ($self, $data) = @_;
