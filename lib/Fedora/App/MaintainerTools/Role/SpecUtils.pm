@@ -90,7 +90,7 @@ sub _build_cmd {
 	my ($self, $rpm_opts, $spec) = @_;
 
     my ($dir, $specfile) = (dir->absolute, $spec->to_file);
-    local $ENV{$_} for qw{ PERL5LIB PERL_MM_OPTS MODULEBUILDRC };
+    local $ENV{$_} for qw{ PERL5LIB PERL_MM_OPT MODULEBUILDRC };
 
     cp $spec->tarball => "$dir";
 
