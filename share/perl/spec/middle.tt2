@@ -2,7 +2,7 @@
 [% data.description -%]
 
 %prep
-%setup -q -n [% data.distname %]-%{version}
+%setup -q -n [% data.dist %]-%{version}
 
 %build
 [% IF data.is_noarch -%]
