@@ -93,6 +93,7 @@ has epoch     => (is => 'rw', lazy_build => 1, isa => 'Maybe[Int]');
 has is_noarch => (is => 'rw', lazy_build => 1, isa => Bool);
 has url       => (is => 'rw', lazy_build => 1, isa => Uri, coerce => 1);
 has license   => (is => 'rw', lazy_build => 1, isa => Str);
+has docfiles  => (is => 'rw', lazy_build => 1, isa => 'ArrayRef[Str]');
 
 has _changelog => (
     traits => [ 'MooseX::AttributeHelpers::Trait::Collection::Array' ],
@@ -137,6 +138,19 @@ has _requires => (
     },
 );
 
+has _additional_deps => (
+    traits => [ 'Array' ],
+    is => 'ro', isa => 'ArrayRef[Str]', lazy_build => 1,
+
+    handles => {
+        has_additional_deps => 'count',
+        no_additional_deps  => 'is_empty',
+        additional_deps     => 'elements',
+
+        additional_deps_as_string => [ join => "\n" ],
+    },
+);
+
 #############################################################################
 # attribute builder methods
 
@@ -168,6 +182,52 @@ sub _build_summary         { die 'not implemented' }
 sub _build__changelog      { die 'not implemented' }
 sub _build__build_requires { die 'not implemented!' }
 sub _build__requires       { die 'not implemented!' }
+
+sub _build_docfiles {
+    my $self = shift @_;
+
+    warn 'unimplemented';
+    return [];
+
+    # look at everything in the root of the tarball, see if we should include
+    # it
+    my $dir = $self->extract_dir;
+    my @files;
+
+    while (my $obj = $dir->next) {
+
+        if ($obj->is_dir) {
+
+            # ...
+        }
+
+    }
+
+    return \@files;
+}
+
+sub _build__additional_deps {
+    my $self = shift @_;
+
+    # check for a helper script.  if it exists, and is executable, then run it
+    # and store the output for later use.  Note we pass the directory where
+    # things were exploded.
+
+    my $script = 'find_optional_deps';
+
+    if (-f $script && -x _) {
+
+        my $dir = $self->extract_dir;
+        my $count = my @lines = `./$script $dir`;
+
+        $self->add_changelog("- additional deps script run; $count deps found");
+
+        @lines = map { chomp; $_ } @lines;
+        return \@lines;
+    }
+
+    return [];
+}
 
 #############################################################################
 # template bits
