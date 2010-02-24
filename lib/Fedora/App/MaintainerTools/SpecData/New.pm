@@ -38,29 +38,27 @@ our $VERSION = '0.003';
 # debugging
 #use Smart::Comments '###', '####';
 
-sub _build_name { 'perl-' . shift->dist }
+sub _build_name 	 { 'perl-' . shift->dist }
+sub _build__requires { my %x = shift->mm->full_rpm_requires; \%x }
 
-sub _build__build_requires { my %x = shift->mm->full_rpm_build_requires; \%x }
-sub _build__requires       { my %x = shift->mm->full_rpm_requires;       \%x }
+sub _build__build_requires {
+	my $self = shift @_;
+	my %reqs = $self->mm->full_rpm_build_requires;
 
-sub _build__changelog      {
+	# force ExtUtils::MakeMaker
+	$reqs{'perl(ExtUtils::MakeMaker)'} = 0
+		if not exists $reqs{'perl(ExtUtils::MakeMaker)'};
 
-    #my $dt = DateTime->now->strftime('%a %b %d %Y');
-    #my $v  = shift->version;
+	return \%reqs;
+}
 
-    #'%changelog',
-    #"* $dt $packager $v-1"
+sub _build__changelog {
 
     [ "- specfile by Fedora::App::MaintainerTools $Fedora::App::MaintainerTools::VERSION" ]
 }
 
 sub _build_version { shift->mm->data->{version} }
-#sub _build_version { shift->module->version }
-
-sub _build_summary {
-    # FIXME this is probably broken for most modules
-    shift->mm->data->{abstract};
-}
+sub _build_summary { shift->mm->data->{abstract} }
 
 #############################################################################
 # description
