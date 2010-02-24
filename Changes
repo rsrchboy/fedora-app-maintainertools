@@ -1,5 +1,12 @@
 Revision history for Fedora-App-MaintainerTools
 
+0.004 Tue Feb 23 2010
+- various cleanups related to excising the last of the old "plugins" system
+- better rpm/srpm building
+- write specs to files, not just stdout
+- add a "run for additional deps" option (see, e.g., find_optional_deps in
+  perl-Moose/devel)
+
 0.003 Wed Feb 17 2010
 - rework plugins system -- role based (and makes sense) now
 - first shot at SRPM generation code
