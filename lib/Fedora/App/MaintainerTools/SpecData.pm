@@ -43,7 +43,7 @@ use Path::Class;
 use RPM::VersionSort;
 use Software::LicenseUtils;
 
-our $VERSION = '0.003';
+our $VERSION = '0.004';
 
 # debugging
 #use Smart::Comments '###', '####';

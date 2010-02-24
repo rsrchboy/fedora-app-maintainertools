@@ -28,7 +28,7 @@ use YAML::Tiny;
 
 use namespace::clean -except => 'meta';
 
-our $VERSION = '0.003';
+our $VERSION = '0.004';
 
 # debugging
 #use Smart::Comments '###', '####';

@@ -28,7 +28,7 @@ use MooseX::Traits::Util 'new_class_with_traits';
 # debugging
 #use Smart::Comments '###', '####';
 
-our $VERSION = '0.003';
+our $VERSION = '0.004';
 
 #############################################################################
 # command options...
