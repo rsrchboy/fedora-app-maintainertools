@@ -25,7 +25,6 @@ lib/Fedora/App/MaintainerTools/Command/updatespec.pm
 lib/Fedora/App/MaintainerTools/LocalRepo.pm
 lib/Fedora/App/MaintainerTools/Role/Bugzilla.pm
 lib/Fedora/App/MaintainerTools/Role/Logger.pm
-lib/Fedora/App/MaintainerTools/Role/Plugins.pm
 lib/Fedora/App/MaintainerTools/Role/SpecUtils.pm
 lib/Fedora/App/MaintainerTools/Role/Template.pm
 lib/Fedora/App/MaintainerTools/SpecData.pm
@@ -33,7 +32,6 @@ lib/Fedora/App/MaintainerTools/SpecData/New.pm
 lib/Fedora/App/MaintainerTools/SpecData/Update.pm
 lib/Fedora/App/MaintainerTools/SpecData/Update/Traits/NixPerlInstallRoot.pm
 lib/Fedora/App/MaintainerTools/Types.pm
-lib/Fedora/App/MaintainerTools/UpdateData.pm
 Makefile.PL
 MANIFEST
 META.yml
