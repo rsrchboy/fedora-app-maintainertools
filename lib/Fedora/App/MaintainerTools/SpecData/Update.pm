@@ -192,6 +192,8 @@ sub _build__requires {
     NEW_REQ_LOOP:
     for my $r (sort $mm->rpm_requires) {
 
+        next NEW_REQ_LOOP if $self->is_suspect_require($r);
+
         my $new = $mm->rpm_require_version($r);
 
         #if ($data->has_require($r)) {
