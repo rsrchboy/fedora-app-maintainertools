@@ -230,6 +230,29 @@ sub _build__additional_deps {
 }
 
 #############################################################################
+# Additional helper bits (not quite spec generation, etc)
+
+has _suspect_requires => (
+    traits => [ 'Hash' ],
+    is => 'ro', isa => 'HashRef', lazy_build => 1,
+
+    handles => {
+        suspect_requires     => 'elements',
+        has_suspect_requires => 'count',
+        no_suspect_requires  => 'is_empty',
+        is_suspect_require   => 'exists',
+    },
+);
+
+sub _build__suspect_requires {
+    my $self = shift @_;
+
+    return {
+        'perl(Test::More)' => 1,
+    };
+}
+
+#############################################################################
 # template bits
 
 # aka, what we use to generate the spec files
