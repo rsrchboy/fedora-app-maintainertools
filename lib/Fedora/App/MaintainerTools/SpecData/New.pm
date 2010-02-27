@@ -117,7 +117,7 @@ sub _build_description {
         }
     }
 
-    return 'no description found';
+    return '%{summary}.';
 }
 
 #############################################################################
