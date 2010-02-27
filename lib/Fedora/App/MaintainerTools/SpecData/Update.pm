@@ -69,6 +69,15 @@ sub _build_epoch   {
 
     my ($old_v, $v) = ($self->spec->version, $self->version);
 
+    if ($old_v eq $v) {
+
+        # if they're actually equivalent, that means we're updating a spec
+        # file that doesn't have a new upstream release.  Don't touch the
+        # epoch, but do bump the requires by one.
+        $self->release($self->spec->release + 1);
+        return;
+    }
+
     if (rpmvercmp($old_v, $v) == 1) {
 
         # rpm is going to think that the old version is larger than the new
