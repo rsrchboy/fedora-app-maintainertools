@@ -232,6 +232,10 @@ sub _build__additional_deps {
 #############################################################################
 # Additional helper bits (not quite spec generation, etc)
 
+# _suspect_requires is a list of requires that are often included as a
+# "requires" (especially in older EU::MM based Makefile.PL's) but in reality
+# are only needed during testing.
+
 has _suspect_requires => (
     traits => [ 'Hash' ],
     is => 'ro', isa => 'HashRef', lazy_build => 1,
@@ -248,8 +252,34 @@ sub _build__suspect_requires {
     my $self = shift @_;
 
     return {
-        'perl(Test::More)' => 1,
+        'perl(Test::More)'      => 1,
+        'perl(Test::Simple)'    => 1,
+        'perl(Test::Pod)'       => 1,
+        #'perl(Test::)' => 1,
     };
+}
+
+# A list of macros we should include before the initial %description
+
+has _macros => (
+    traits => [ 'Array' ],
+    is => 'ro', isa => 'ArrayRef', lazy_build => 1,
+
+    handles => {
+        macros => 'elements',
+        has_macros => 'count',
+        no_macros => 'is_empty',
+        macros_as_string => [ join => "\n" ],
+    },
+);
+
+sub _build__macros {
+    my $self = shift @_;
+
+    return [
+        '%{?perl_default_filter}',
+        '%{?perl_default_subpackage_tests}',
+    ];
 }
 
 #############################################################################
