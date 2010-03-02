@@ -282,6 +282,28 @@ sub _build_middle {
 sub _suspect_req { shift =~ /^perl\(Test::/ }
 
 #############################################################################
+# RPM metadata filtering (and other) macros
+
+around _build__macros => sub {
+    my ($orig, $self) = @_;
+
+    my @macros = @{ $self->$orig() };
+
+    return \@macros unless exists $self->conf->{metadata_filtering};
+
+    # FIXME we need to switch to Config::MVP or some such, that allows
+    # multiple values in the conf file.
+
+    my $filters = $self->conf->{metadata_filtering};
+    for my $macro (sort keys %$filters) {
+
+        unshift @macros, '%{?' . $macro . ': %' . "$macro $filters->{$macro} }";
+    }
+
+    return \@macros;
+};
+
+#############################################################################
 # Generate our template
 
 # FIXME rework middle into the template and drop the method below
