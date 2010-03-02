@@ -43,7 +43,6 @@ has spec => (is => 'ro', isa => 'RPM::Spec', required => 1, coerce => 1);
 
 sub _build_name    { shift->spec->name }
 sub _build_license { warn 'not checking license'; shift->spec->license }
-sub _build_version { shift->mm->data->{version} }
 sub _build_summary { shift->spec->summary }
 sub _build_url     { shift->spec->url }
 
@@ -51,6 +50,18 @@ sub _build_dist    { (my $_ = shift->name) =~ s/^perl-//; s/\s*$//; $_ }
 
 sub _build__changelog {
     [ "- update by Fedora::App::MaintainerTools $Fedora::App::MaintainerTools::VERSION" ]
+}
+
+sub _build_version {
+    my $self = shift @_;
+
+    my $new = $self->mm->data->{version};
+    my $old = $self->spec->version;
+
+    $self->add_changelog("- updating to latest GA CPAN version ($new)")
+        if $new ne $old;
+
+    return $new;
 }
 
 #############################################################################
