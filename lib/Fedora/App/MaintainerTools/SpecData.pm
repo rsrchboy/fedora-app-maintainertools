@@ -35,6 +35,7 @@ with 'Fedora::App::MaintainerTools::Role::Template';
 use CPAN::MetaMuncher;
 use Config::Tiny;
 use DateTime;
+use File::Basename;
 use File::Copy 'cp';
 use File::Slurp;
 use List::Util 'first';
@@ -93,7 +94,16 @@ has epoch     => (is => 'rw', lazy_build => 1, isa => 'Maybe[Int]');
 has is_noarch => (is => 'rw', lazy_build => 1, isa => Bool);
 has url       => (is => 'rw', lazy_build => 1, isa => Uri, coerce => 1);
 has license   => (is => 'rw', lazy_build => 1, isa => Str);
-has docfiles  => (is => 'rw', lazy_build => 1, isa => 'ArrayRef[Str]');
+
+has _docfiles => (
+    traits => ['Array'], is => 'rw', lazy_build => 1, isa => 'ArrayRef[Str]',
+    handles => {
+        docfiles           => 'elements',
+        has_docfiles       => 'count',
+        no_docfiles        => 'is_empty',
+        docfiles_as_string => [ join => "\n" ],
+    },
+);
 
 has _changelog => (
     traits => [ 'MooseX::AttributeHelpers::Trait::Collection::Array' ],
@@ -183,27 +193,18 @@ sub _build__changelog      { die 'not implemented' }
 sub _build__build_requires { die 'not implemented!' }
 sub _build__requires       { die 'not implemented!' }
 
-sub _build_docfiles {
+sub _build__docfiles {
     my $self = shift @_;
 
-    warn 'unimplemented';
-    return [];
+    #my $dir = $self->extract_dir;
 
-    # look at everything in the root of the tarball, see if we should include
-    # it
-    my $dir = $self->extract_dir;
-    my @files;
+    my @docfiles =
+        grep { /(README|Change(s|log)|LICENSE|Copyright|ex|examples|doc(s))$/i }
+        map { basename $_ }
+        @{ $self->module->status->files }
+        ;
 
-    while (my $obj = $dir->next) {
-
-        if ($obj->is_dir) {
-
-            # ...
-        }
-
-    }
-
-    return \@files;
+    return \@docfiles;
 }
 
 sub _build__additional_deps {
@@ -273,13 +274,44 @@ has _macros => (
     },
 );
 
+# FIXME TODO this entire section needs to be done in tt2
 sub _build__macros {
     my $self = shift @_;
 
-    return [
-        '%{?perl_default_filter}',
+    # Bad! FIXME
+    my $excludes = $self->mm->_meta->[0]->{no_index};
+
+    unless ($excludes) {
+
+        return [
+            '%{?perl_default_filter}',
+            '%{?perl_default_subpackage_tests}',
+        ];
+    }
+
+    my @lines = ('%{?perl_default_filter:');
+
+    my $libdir = $self->is_noarch ? '%{perl_vendorlib}' : '%{perl_vendorlib}';
+
+    my @by_dir =
+        map  { "%filter_provides_in $_" }
+        map  { s!^lib/!!; "$libdir/$_"  }
+        grep { /^lib/                   }
+        @{$excludes->{directory}}
+        ;
+
+    my @by_pkg =
+        map { "%filter_from_provides /^perl($_)/d" }
+        @{$excludes->{package}}
+        ;
+
+    push @lines, @by_dir, @by_pkg,
+        '%perl_default_filter',
+        '}',
         '%{?perl_default_subpackage_tests}',
-    ];
+        ;
+
+    return \@lines;
 }
 
 #############################################################################
