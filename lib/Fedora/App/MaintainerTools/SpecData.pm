@@ -281,15 +281,12 @@ sub _build__macros {
     # Bad! FIXME
     my $excludes = $self->mm->_meta->[0]->{no_index};
 
-    unless ($excludes) {
+    my $default = [
+        '%{?perl_default_filter}',
+        '%{?perl_default_subpackage_tests}',
+    ];
 
-        return [
-            '%{?perl_default_filter}',
-            '%{?perl_default_subpackage_tests}',
-        ];
-    }
-
-    my @lines = ('%{?perl_default_filter:');
+    return $default unless $excludes;
 
     my $libdir = $self->is_noarch ? '%{perl_vendorlib}' : '%{perl_vendorlib}';
 
@@ -299,12 +296,14 @@ sub _build__macros {
         grep { /^lib/                   }
         @{$excludes->{directory}}
         ;
-
     my @by_pkg =
         map { "%filter_from_provides /^perl($_)/d" }
         @{$excludes->{package}}
         ;
 
+    return $default unless @by_dir > 0 || @by_pkg > 0;
+
+    my @lines = ('%{?perl_default_filter:');
     push @lines, @by_dir, @by_pkg,
         '%perl_default_filter',
         '}',
