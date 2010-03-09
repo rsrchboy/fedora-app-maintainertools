@@ -16,6 +16,7 @@ package Fedora::App::MaintainerTools::SpecData::Update;
 
 use Moose;
 use namespace::autoclean;
+use MooseX::Types::Moose ':all';
 
 #use autodie qw{ system };
 #use Fedora::App::MaintainerTools::Types ':all';
@@ -37,6 +38,13 @@ our $VERSION = '0.005';
 #use Smart::Comments '###', '####';
 
 has spec => (is => 'ro', isa => 'RPM::Spec', required => 1, coerce => 1);
+
+#############################################################################
+# "how"
+
+has is_fully_managed => (is => 'ro', isa => Bool, lazy_build => 1);
+
+sub _build_is_fully_managed { shift->conf->{common}->{is_fully_managed} }
 
 #############################################################################
 # build methods
@@ -62,6 +70,27 @@ sub _build_version {
         if $new ne $old;
 
     return $new;
+}
+
+sub _build_description { shift->conf->{spec_description}->{content} // '%{summary}.' }
+
+{
+    my $build = sub {
+        my ($self, $part) = @_;
+
+        return $self->conf->{"spec_$part"}->{use_custom}
+            ? [ split "\n", $self->conf->{"spec_$part"}->{custom} ]
+            : [ ]
+            ;
+    };
+
+    # FIXME prep is a special case
+    #sub _build__prep    { $build->($self, 'prep')    }
+    sub _build__build   { $build->(shift, 'build')   }
+    sub _build__install { $build->(shift, 'install') }
+    sub _build__check   { $build->(shift, 'check')   }
+    sub _build__clean   { $build->(shift, 'clean')   }
+    sub _build__files   { $build->(shift, 'files')   }
 }
 
 #############################################################################

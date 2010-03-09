@@ -33,7 +33,7 @@ with 'MooseX::Traits';
 with 'Fedora::App::MaintainerTools::Role::Template';
 
 use CPAN::MetaMuncher;
-use Config::Tiny;
+use Config::IniFiles;
 use DateTime;
 use File::Basename;
 use File::Copy 'cp';
@@ -66,20 +66,26 @@ sub _build_dist { die 'dist is not set, and is required!' }
 #############################################################################
 # CPAN bits, etc
 
-has conf        => (is => 'rw', isa => 'Config::Tiny', lazy_build => 1);
+has conf        => (is => 'rw', isa => 'HashRef', lazy_build => 1);
 has mm          => (is => 'ro', isa => 'CPAN::MetaMuncher', lazy_build => 1);
 has cpanp       => (is => 'ro', isa => CPBackend, lazy_build => 1);
 has module      => (is => 'ro', isa => CPModule,  lazy_build => 1);
 has tarball     => (is => 'ro', lazy_build => 1, isa => File, coerce => 1);
 has extract_dir => (is => 'ro', lazy_build => 1, isa => Dir, coerce => 1);
 
-sub _build_conf    { Config::Tiny->read('auto.ini') || Config::Tiny->new }
 sub _build_mm      { CPAN::MetaMuncher->new(module => shift->module)     }
 sub _build_cpanp   { require CPANPLUS::Backend; CPANPLUS::Backend->new   }
 sub _build_module  { my $s = shift; $s->cpanp->parse_module(module => $s->dist) }
 sub _build_tarball { my $s = shift; $s->module->status->fetch || $s->module->fetch }
 sub _build_extract_dir
     { my $m = shift->module; $m->status->extract || $m->extract }
+
+sub _build_conf    {
+
+    #Config::Tiny->read('auto.ini') || Config::Tiny->new
+    tie my %ini, 'Config::IniFiles', (-file=>'auto.ini');
+    return \%ini;
+}
 
 #############################################################################
 # generated spec data, etc
@@ -94,6 +100,17 @@ has epoch     => (is => 'rw', lazy_build => 1, isa => 'Maybe[Int]');
 has is_noarch => (is => 'rw', lazy_build => 1, isa => Bool);
 has url       => (is => 'rw', lazy_build => 1, isa => Uri, coerce => 1);
 has license   => (is => 'rw', lazy_build => 1, isa => Str);
+
+has description => (is => 'rw', isa => Str, lazy_build => 1);
+
+for (qw{ prep build install check clean files }) {
+
+    has "_$_" => (
+        traits => ['Array'],
+        is => 'rw', isa => 'ArrayRef[Str]', lazy_build => 1,
+        handles => { $_ => 'elements', "has_$_" => 'count' },
+    );
+}
 
 has _docfiles => (
     traits => ['Array'], is => 'rw', lazy_build => 1, isa => 'ArrayRef[Str]',
@@ -192,6 +209,14 @@ sub _build_summary         { die 'not implemented' }
 sub _build__changelog      { die 'not implemented' }
 sub _build__build_requires { die 'not implemented!' }
 sub _build__requires       { die 'not implemented!' }
+
+# an empty arrayref, just so "has_foo" works properly.
+sub _build__prep    { [] }
+sub _build__build   { [] }
+sub _build__install { [] }
+sub _build__check   { [] }
+sub _build__clean   { [] }
+sub _build__files   { [] }
 
 sub _build__docfiles {
     my $self = shift @_;

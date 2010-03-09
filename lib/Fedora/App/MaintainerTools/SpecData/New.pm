@@ -63,7 +63,7 @@ sub _build_summary { shift->mm->data->{abstract} }
 #############################################################################
 # description
 
-has description => (is => 'rw', isa => Str, lazy_build => 1);
+#has description => (is => 'rw', isa => Str, lazy_build => 1);
 
 # this is largely stolen from CPANPLUS::Dist::RPM...  in need of some serious
 # refactoring but works for now.
