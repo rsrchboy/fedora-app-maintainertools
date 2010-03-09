@@ -36,7 +36,7 @@ my @CLASSES = qw{
 	Fedora::App::MaintainerTools::LocalRepo
 };
 
-our $VERSION = '0.004';
+our $VERSION = '0.005';
 
 has package => (is => 'ro', isa => Bool, default => 0);
 has rebuild => (is => 'ro', isa => Bool, default => 1);

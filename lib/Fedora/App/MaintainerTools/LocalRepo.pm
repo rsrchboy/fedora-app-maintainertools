@@ -32,7 +32,7 @@ with 'MooseX::Traits';
 use File::Copy 'cp';
 use Path::Class;
 
-our $VERSION = '0.004';
+our $VERSION = '0.005';
 
 # debugging
 use Smart::Comments '###', '####';

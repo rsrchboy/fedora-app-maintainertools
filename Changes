@@ -1,5 +1,17 @@
 Revision history for Fedora-App-MaintainerTools
 
+0.005 Mon Mar  8 2010
+- Use '%{summary}.' as the default description
+- "Suspect requires" are now filtered from the requires stream, and included
+  as BR's if not already present.  (e.g. Test::More and the like).
+- properly increment release when we're a revision
+- We now have bits to invoke the RPM metadata filtering system.  This can be
+  done on an override basis (e.g. in auto.ini) as well as by examining the
+  "no_index" parts in META.yml.
+- We now log actual version++'s in the %changelog when updating to a new GA.
+- We now try to get %docfile right.
+- We always check to ensure EU::MM is BR'ed.
+
 0.004 Tue Feb 23 2010
 - various cleanups related to excising the last of the old "plugins" system
 - better rpm/srpm building

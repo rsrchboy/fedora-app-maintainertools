@@ -33,7 +33,7 @@ use Text::Autoformat;
 
 extends 'Fedora::App::MaintainerTools::SpecData';
 
-our $VERSION = '0.004';
+our $VERSION = '0.005';
 
 # debugging
 #use Smart::Comments '###', '####';

@@ -44,7 +44,7 @@ use Path::Class;
 use RPM::VersionSort;
 use Software::LicenseUtils;
 
-our $VERSION = '0.004';
+our $VERSION = '0.005';
 
 # debugging
 #use Smart::Comments '###', '####';

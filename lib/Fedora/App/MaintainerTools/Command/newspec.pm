@@ -37,7 +37,7 @@ my @CLASSES = qw{
     Fedora::App::MaintainerTools::SpecData::New
 };
 
-our $VERSION = '0.004';
+our $VERSION = '0.005';
 
 has package => (is => 'ro', isa => Bool, default => 0);
 

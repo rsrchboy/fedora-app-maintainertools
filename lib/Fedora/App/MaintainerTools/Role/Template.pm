@@ -23,7 +23,7 @@ use MooseX::Types::Path::Class ':all';
 use namespace::autoclean;
 use Path::Class;
 
-our $VERSION = '0.004';
+our $VERSION = '0.005';
 
 has share_dir => (is => 'ro', isa => Dir, coerce => 1, lazy_build => 1);
 has _tt2      => (is => 'ro', isa => Object, lazy_build => 1);
