@@ -151,6 +151,13 @@ sub _build__build_requires {
         push @cl, "- added a new br on $br (version $new)";
     }
 
+    # Ensure that EU::MM is _always_ BR'ed
+    unless (exists $brs{'perl(ExtUtils::MakeMaker)'}) {
+
+        $brs{'perl(ExtUtils::MakeMaker)'} = 0;
+        push @cl, '- force-adding ExtUtils::MakeMaker as a BR';
+    }
+
     # delete stale build requirements
     PURGE_BR_LOOP:
     #for my $br ($data->build_requires) {
@@ -161,6 +168,7 @@ sub _build__build_requires {
             if $br !~ /^perl\(/ || $br eq 'perl(CPAN)';
 
         next PURGE_BR_LOOP if $br =~ /^perl\(:MODULE_COMPAT/;
+        next PURGE_BR_LOOP if $br eq 'perl(ExtUtils::MakeMaker)';
         next PURGE_BR_LOOP if exists $data->conf->{add_build_requires}->{$br};
 
         # check to see META.yml lists it as a dep.  if not, purge.
@@ -212,9 +220,17 @@ sub _build__requires {
     NEW_REQ_LOOP:
     for my $r (sort $mm->rpm_requires) {
 
-        next NEW_REQ_LOOP if $self->is_suspect_require($r);
-
         my $new = $mm->rpm_require_version($r);
+
+        if ($self->is_suspect_require($r)) {
+
+            next NEW_REQ_LOOP if $self->has_build_require($r);
+
+            $self->build_require_this($r => $new);
+            $self->add_changelog("- suspect requires as BR ($r $new)");
+            next NEW_REQ_LOOP;
+        }
+
 
         #if ($data->has_require($r)) {
         if (exists $require{$r}) {
