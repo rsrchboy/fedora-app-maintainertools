@@ -253,6 +253,11 @@ sub _build__suspect_requires {
     my $self = shift @_;
 
     return {
+        # "build" modules
+        'perl(ExtUtils::MakeMaker)' => 1,
+
+        # testing modules
+        'perl(Test::Exception)' => 1,
         'perl(Test::More)'      => 1,
         'perl(Test::Simple)'    => 1,
         'perl(Test::Pod)'       => 1,
