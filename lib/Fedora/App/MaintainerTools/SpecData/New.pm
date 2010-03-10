@@ -110,7 +110,7 @@ sub _build_description {
            my @paragraphs = (split /\n\n/, $text)[0..2];
             #$text = join "\n\n", @paragraphs;
             $text = q{};
-            for my $para (@paragraphs) { $text .= $para }
+            for my $para (@paragraphs) { $text .= $para || ''}
 
             # autoformat and return...
             return autoformat $text, { all => 1 };

@@ -26,7 +26,7 @@ use lib "$FindBin::Bin/../../CPAN-MetaMuncher/lib";
 use Fedora::App::MaintainerTools;
 use Log::Log4perl ':easy';
 
-BEGIN { Log::Log4perl->easy_init }
+BEGIN { Log::Log4perl->easy_init($INFO) }
 
 Fedora::App::MaintainerTools->run;
 

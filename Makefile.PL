@@ -27,9 +27,12 @@ requires 'MooseX::Types::Path::Class';
 requires 'MooseX::Types::URI';
 
 requires 'CPANPLUS::Backend';
+requires 'Data::TreeDumper';
 requires 'DateTime';
 requires 'File::Copy';
 requires 'File::Slurp';
+requires 'List::MoreUtils';
+requires 'Module::CoreList';
 requires 'Path::Class';
 requires 'RPM::Spec' => '0.04';
 requires 'RPM::VersionSort' => '1.00';
