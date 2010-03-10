@@ -1,5 +1,5 @@
 [% PROCESS perl/spec/preamble.tt2 -%]
-[% IF middle %]
+[% IF middle && !data.is_fully_managed %]
 %description
 [% middle %]
 [% ELSE %]
