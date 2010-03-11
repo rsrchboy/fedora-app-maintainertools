@@ -58,7 +58,16 @@ sub _build__changelog {
 }
 
 sub _build_version { shift->mm->data->{version} }
-sub _build_summary { shift->mm->data->{abstract} }
+
+sub _build_summary {
+    my $self = shift @_;
+
+    # some common cleanups.
+    my $summary = ucfirst $self->mm->data->{abstract};
+    $summary =~ s/\.\s*$//;
+
+    return $summary;
+}
 
 #############################################################################
 # description
