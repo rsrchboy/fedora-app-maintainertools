@@ -29,7 +29,7 @@ with 'Fedora::App::MaintainerTools::Role::Bugzilla';
 # debugging
 #use Smart::Comments '###', '####';
 
-our $VERSION = '0.005';
+our $VERSION = '0.006';
 
 sub execute {
     my ($self, $opt, $args) = @_;

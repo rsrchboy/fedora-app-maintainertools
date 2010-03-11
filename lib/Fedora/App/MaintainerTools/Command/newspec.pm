@@ -47,7 +47,7 @@ my @CLASSES = qw{
     RPM2
 };
 
-our $VERSION = '0.005';
+our $VERSION = '0.006';
 
 sub command_names { 'new-spec' }
 

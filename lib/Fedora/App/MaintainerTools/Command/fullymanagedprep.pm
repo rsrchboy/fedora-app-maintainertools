@@ -36,7 +36,7 @@ my @CLASSES = qw{
     Config::IniFiles
 };
 
-our $VERSION = '0.005';
+our $VERSION = '0.006';
 
 has inifile => (is => 'rw', isa => File, coerce => 1, default => 'auto.ini');
 

@@ -1,5 +1,12 @@
 Revision history for Fedora-App-MaintainerTools
 
+0.006 Wed Mar 10 2010
+- we can now build new specs/srpms recursively!  (And display them as a dep
+  tree.)
+- Initial changes required to enable fully-managed spec mode have been
+  committed, along with a "helper" command to make breaking out the custom
+  sections (to auto.ini) easier.
+
 0.005 Mon Mar  8 2010
 - Use '%{summary}.' as the default description
 - "Suspect requires" are now filtered from the requires stream, and included

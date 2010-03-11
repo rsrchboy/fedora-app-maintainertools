@@ -32,7 +32,7 @@ use RPM::VersionSort;
 
 extends 'Fedora::App::MaintainerTools::SpecData';
 
-our $VERSION = '0.005';
+our $VERSION = '0.006';
 
 # debugging
 #use Smart::Comments '###', '####';

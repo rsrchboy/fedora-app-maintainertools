@@ -20,7 +20,7 @@ package Fedora::App::MaintainerTools;
 use Moose;
 use namespace::autoclean;
 
-our $VERSION = '0.005';
+our $VERSION = '0.006';
 
 extends 'MooseX::App::Cmd';
 
