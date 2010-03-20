@@ -99,7 +99,6 @@ has source0   => (is => 'rw', lazy_build => 1, isa => Str);
 has epoch     => (is => 'rw', lazy_build => 1, isa => 'Maybe[Int]');
 has is_noarch => (is => 'rw', lazy_build => 1, isa => Bool);
 has url       => (is => 'rw', lazy_build => 1, isa => Uri, coerce => 1);
-has license   => (is => 'rw', lazy_build => 1, isa => Str);
 
 has description => (is => 'rw', isa => Str, lazy_build => 1);
 
@@ -111,6 +110,19 @@ for (qw{ prep build install check clean files }) {
         handles => { $_ => 'elements', "has_$_" => 'count' },
     );
 }
+
+has _license_info => (
+    traits => [ 'Hash' ],
+    is => 'ro', isa => 'HashRef', lazy_build => 1,
+
+    handles => {
+        has_license_comment => [ exists => 'license_comment' ],
+        license_comment     => [ get    => 'license_comment' ],
+        has_license         => [ exists => 'license' ],
+        license             => [ get    => 'license' ],
+    },
+);
+
 
 has _docfiles => (
     traits => ['Array'], is => 'rw', lazy_build => 1, isa => 'ArrayRef[Str]',
@@ -203,7 +215,15 @@ sub _build_is_noarch {
     return do { first { /\.(c|xs)$/i } @$files } ? 0 : 1;
 }
 
-sub _build_license { warn 'not implemented!'; 'CHECK(GPL+ or Artistic)' }
+sub _build__license_info {
+
+    warn 'not implemented!';
+
+    return {
+        license => 'CHECK(GPL+ or Artistic)',
+        license_comment => '# NOT VALIDATED',
+    };
+}
 
 sub _build_summary         { die 'not implemented' }
 sub _build__changelog      { die 'not implemented' }

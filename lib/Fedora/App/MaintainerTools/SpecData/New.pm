@@ -132,10 +132,6 @@ has license_map => (
     provides => { get => 'license_shortname' },
 );
 
-has license_comment => (is => 'rw', isa => 'Maybe[Str]', lazy_build => 1);
-
-sub _build_license_comment { undef }
-
 sub _build_license_map {
 
     return {
@@ -164,7 +160,7 @@ sub _build_license_map {
     };
 }
 
-sub _build_license {
+sub _build__license_info {
     my $self = shift @_;
 
     Class::MOP::load_class('File::Find::Rule');
@@ -240,15 +236,18 @@ sub _build_license {
     ### @lics
 
     if (@lics > 0) {
-        #$self->status->license(join(' or ', @lics));
-        $self->license_comment($lic_comment);
-        return join(' or ', @lics);
+
+        # we found at least one license!
+        return {
+            license_comment => $lic_comment,
+            license         => join(' or ', @lics),
+        };
     }
 
-    #$self->status->license($DEFAULT_LICENSE);
-    $self->license_comment("# license auto-determination failed\n");
-    #$self->status->license('CHECK(GPL+ or Artistic)');
-    return 'CHECK(GPL+ or Artistic)';
+    return {
+        license_comment => "# license auto-determination failed\n",
+        license         => 'CHECK(GPL+ or Artistic)',
+    };
 }
 
 __PACKAGE__->meta->make_immutable;
