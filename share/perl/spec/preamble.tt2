@@ -21,11 +21,12 @@ BuildArch:      noarch
 BuildRequires:  [% br %][% IF (vers != 0) %] >= [% vers %][% END %]
 [% END -%]
 
+[% IF data.has_requires -%]
 [% brs = data.requires; FOREACH br = brs.sort -%]
 [% vers = data.build_require_version(br) -%]
 Requires:       [% br %][% IF (vers != 0) %] >= [% vers %][% END %]
 [% END -%]
-
+[% END # if data.has_requires -%]
 [% IF data.has_additional_deps -%]
 ### Additional generated deps. These deps are regenerated from scratch every
 ### time this spec file is updated.
