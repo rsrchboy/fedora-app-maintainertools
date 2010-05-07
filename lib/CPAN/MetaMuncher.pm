@@ -18,56 +18,161 @@
 package CPAN::MetaMuncher;
 
 use Moose;
-
-use MooseX::AttributeHelpers;
+use namespace::autoclean;
+use MooseX::Types::Moose       ':all';
 use MooseX::Types::Path::Class ':all';
 
+use CPAN::Easy;
 use Path::Class;
-use JSON;
-use YAML::Tiny;
-
-use namespace::clean -except => 'meta';
 
 our $VERSION = '0.006';
 
 # debugging
 #use Smart::Comments '###', '####';
 
-has module => (is => 'rw', required => 1, isa => 'CPANPLUS::Module');
+#############################################################################
+# required / buildargs
 
-# FIXME -- we should check to make sure we're supported, etc, etc
-#has _meta => (is => 'ro', isa => 'YAML::Tiny', lazy_build => 1);
-#has _meta => (is => 'ro', isa => 'ArrayRef[HashRef]|YAML::Tiny', lazy_build => 1);
-has _meta => (is => 'ro', lazy_build => 1);
+# we require either module or filename to be passed... since one or the other
+# suffices, we forgo the usual "required => 1" and instead check that we have
+# at least one of them after BUILDARGS has had a chance to run.
+
+has module   => (is => 'ro', isa => Str, lazy_build => 1);
+has filename => (is => 'ro', isa => File, coerce => 1, lazy_build => 1);
+
+after BUILDARGS => sub {
+    my $class = shift @_;
+
+    my $args = ref $_[0] ? $_[0] : { @_ };
+    die 'We require either module or filename, but neither was passed'
+        unless exists $args->{module} || exists $args->{filename};
+
+    return;
+};
+
+#############################################################################
+# Our parsed META.yml
+
+# pretty simplistic -- CPAN::Easy does most of the work here if we're passed
+# a module, otherwise we just load and parse from the filename.
+
+has _meta => (is => 'ro', lazy_build => 1, isa => 'HashRef');
 
 sub _build__meta {
     my $self = shift @_;
 
-    $self->module->fetch;
-    my $meta_file = file $self->module->extract, 'META.yml';
-    #YAML::Tiny->read(file($self->module->extract, 'META.yml'));
-    my $m;
-    local $@;
-    eval { $m = YAML::Tiny->read(file($self->module->extract, 'META.yml'))     };
-    warn "Eval error (yaml::tiny): $@" if $@;
-    #return $m if defined $m;
-    return $m unless $@;
-    eval { $m = from_json(file($self->module->extract, 'META.yml')->slurp) };
+    return CPAN::Easy->get_meta_for($self->module)
+        if $self->has_module;
 
-    # FIXME we really should just drop the indexing above.  sigh.
-    return [ $m ] if defined $m;
-    die "Eval error reading META: $@";
+    die 'Need to implement loading from filename!';
+    return;
 }
 
-sub data { shift->_meta->[0] }
+#############################################################################
+# Our scalar data
 
-# simple
+# we handle all of the items with only one value via one hash, and let Moose
+# do the work by generating accessor methods.
 
-has version => (is => 'rw', isa => 'Str', lazy_build => 1);
+# FIXME NOTE here and below, we should probably use a method to return the
+# list rather than a lexical variable, so as to make it easier to inherit from
+# this class.
 
-sub _build_version { shift->_meta->[0]->{version} }
+my @scalars = qw{
+    abstract distribution_type generated_by license name version
+};
 
-# complex
+has _scalars => (
+    traits => ['Hash'], is => 'ro', isa => 'HashRef[Str]', lazy_build => 1,
+    handles =>
+        { sub { map { $_ => [ get => $_ ], "has_$_" => [ exists => $_ ] } @scalars }->() },
+);
+
+sub _build__scalars { [ shift->_meta->{@scalars} ] }
+
+#############################################################################
+# Our key/value data
+
+# handle all data with one-level key/value pairs; e.g. requires.
+
+my @hashes = qw{
+    build_requires configure_requires requires
+};
+
+for my $hash (@hashes) {
+
+    has "_$hash" => (
+        traits => ['Hash'], is => 'ro', isa => 'HashRef[Str]', lazy => 1,
+        default => sub { shift->_meta->{$hash} || { } },
+        handles => {
+            "has_$hash" => 'count',             # has_foos
+            "num_$hash" => 'count',             # num_foos
+            $hash       => 'keys',              # foos
+            $hash . '_value' => 'get',          # foos_value(x)
+            "has_a_$hash" . '_on' => 'exists',  # has_a_foos_on(x)
+        },
+    );
+}
+
+#############################################################################
+# "resources"
+
+# Handle the resources section by providing direct exists/get accessors to the
+# "official" keywords, as well as more generic access to all keywords that may
+# exist.  Note that "license" is handled as "license_resource", so as to avoid
+# conflicting with the license accessor above.
+#
+# Note also that while our values are URI's, we handle them as plain
+# strings....  we might want to reevaluate this.
+
+# license handled separately
+my @resources = qw{ homepage bugtracker repository };
+
+has _resources => (
+    traits => ['Hash'], is => 'ro', isa => 'HashRef[Str]', lazy_build => 1,
+    handles => {
+
+        # conflicts otherwise...
+        has_license_resource => [ exists => 'license' ],
+        license_resource     => [ get    => 'license' ],
+
+        # has_resource, (get) resource for all resources defined
+        sub { map { +"has_$_" => [ exists => $_ ], $_ => [ get => $_ ] } @resources }->(),
+
+        # generic
+        has_resource   => 'exists',
+        resource_value_of => 'get',
+        resources      => 'keys',
+        num_resources  => 'count',
+        has_resources  => 'count',
+    },
+);
+
+sub _build_resources { shift->_meta->{resources} || { } }
+
+#############################################################################
+# author / author info
+
+has _authors => (
+    traits => ['Array'], is => 'ro', isa => 'ArrayRef[Str]', lazy_build => 1,
+    handles => {
+        author  => [ get => 0 ],
+        authors => 'elements',
+        num_authors => 'count',
+        has_authors => 'count',
+        grep_authors => 'grep',
+        map_authors  => 'map',
+        join_authors => 'join',
+        all_authors => [ join => ', ' ],
+    },
+);
+
+sub _build__authors { shift->_meta->{authors} }
+
+#############################################################################
+# RPM requires/needs
+
+# NOTE/FIXME we should probably break this out into a TraitFor style role
 
 has _rpm_build_requires => (
     metaclass => 'Collection::ImmutableHash',
