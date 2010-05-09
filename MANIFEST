@@ -15,7 +15,6 @@ inc/Module/Install/Scripts.pm
 inc/Module/Install/Share.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
-lib/CPAN/MetaMuncher.pm
 lib/Fedora/App/MaintainerTools.pm
 lib/Fedora/App/MaintainerTools/Command/ftbfs.pm
 lib/Fedora/App/MaintainerTools/Command/newspec.pm

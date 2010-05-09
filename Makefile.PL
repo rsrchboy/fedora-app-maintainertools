@@ -26,7 +26,10 @@ requires 'MooseX::Types';
 requires 'MooseX::Types::Path::Class';
 requires 'MooseX::Types::URI';
 
-requires 'CPANPLUS::Backend';
+requires 'CPAN::Easy';
+requires 'CPAN::Easy::TraitFor::RPMInfo';
+requires 'CPAN::MetaMuncher';
+
 requires 'Data::TreeDumper';
 requires 'DateTime';
 requires 'File::Copy';
