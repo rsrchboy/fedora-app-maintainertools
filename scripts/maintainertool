@@ -1,11 +1,10 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 #############################################################################
 #
 # Run the maintainer tools commands.
 #
 # Author:  Chris Weyl (cpan:RSRCHBOY), <cweyl@alumni.drew.edu>
 # Company: No company, personal work
-# Created: 06/16/2009
 #
 # Copyright (c) 2009  <cweyl@alumni.drew.edu>
 #
@@ -21,7 +20,6 @@ use warnings;
 
 use FindBin;
 use lib "$FindBin::Bin/../lib";
-use lib "$FindBin::Bin/../../CPAN-MetaMuncher/lib";
 
 use Fedora::App::MaintainerTools;
 use Log::Log4perl ':easy';

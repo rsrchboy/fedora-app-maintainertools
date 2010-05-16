@@ -4,9 +4,8 @@
 #
 # Author:  Chris Weyl (cpan:RSRCHBOY), <cweyl@alumni.drew.edu>
 # Company: No company, personal work
-# Created: 05/12/2009 09:54:18 PM PDT
 #
-# Copyright (c) 2009 Chris Weyl <cweyl@alumni.drew.edu>
+# Copyright (c) 2009-2010 Chris Weyl <cweyl@alumni.drew.edu>
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -15,11 +14,10 @@
 #
 #############################################################################
 
-package Fedora::App::MaintainerTools::Command::newspec;
+package Fedora::App::MaintainerTools::Role::RPM;
 
-use Moose;
+use Moose::Role;
 use namespace::autoclean;
-use MooseX::Types::Moose ':all';
 use MooseX::Types::Path::Class ':all';
 use File::Copy 'cp';
 use List::MoreUtils 'uniq';
@@ -29,75 +27,68 @@ use autodie 'system';
 
 use Fedora::App::MaintainerTools::Types ':all';
 
-extends 'MooseX::App::Cmd::Command';
-with 'Fedora::App::MaintainerTools::Role::Logger';
-with 'Fedora::App::MaintainerTools::Role::CPAN';
-with 'Fedora::App::MaintainerTools::Role::Template';
-with 'Fedora::App::MaintainerTools::Role::RPM';
-with 'Fedora::App::MaintainerTools::Role::SpecUtils';
+our $VERSION = '0.006_01';
 
 # debugging
 #use Smart::Comments '###';
 
-# classes we need but don't want to load at compile-time
-my @CLASSES = qw{
-    DateTime
+#############################################################################
+
+requires 'log';
+
+before execute => sub {
+
+    # classes we need but don't want to load a compile-time
+    Class::MOP::load_class($_) for qw{
+        Data::TreeDumper
+        Module::CoreList
+        RPM2
+    };
+    return;
 };
 
-our $VERSION = '0.006_01';
+#############################################################################
 
-sub command_names { 'new-spec' }
+# here's where we stash our rpmdb access
 
-has recursive => (is => 'ro', isa => Bool, default => 0);
+has rpmdb =>
+    (traits => ['NoGetopt'], is => 'ro', isa => 'Object', lazy_build => 1);
 
-has _new_pkgs => (
-    traits => ['Hash'],
-    is => 'ro', isa => 'HashRef', default => sub { {} },
-    handles => {
-        new_pkgs     => 'keys',
-        has_new_pkgs => 'count',
-        no_new_pkgs  => 'is_empty',
-        num_new_pkgs => 'count',
-        has_new_pkg  => 'exists',
-        add_new_pkg  => 'set',
-    },
-);
+sub _build_rpmdb { RPM2->open_rpm_db() }
 
-sub execute {
-    my ($self, $opt, $args) = @_;
+#############################################################################
+# rpmbuild methods
 
-    $self->log->info('Beginning new-spec run.');
-    Class::MOP::load_class($_) for @CLASSES;
+sub build_srpm { shift->_build_cmd('-bs --nodeps', @_) }
+sub build_rpm  { shift->_build_cmd('-ba',          @_) }
 
-    for my $module (@$args) {
+sub _build_cmd {
+    my ($self, $rpm_opts, $spec) = @_;
 
-        #my ($dist, $rpm_name) = $self->_pkg_to_dist($pkg);
-        my $mm = $self->mm_class->new(module => $module);
-        my $ret = $self->_new_spec($pkg);
+    my ($dir, $specfile) = (dir->absolute, $spec->to_file);
+    local $ENV{$_} for qw{ PERL5LIB PERL_MM_OPT MODULEBUILDRC };
 
-        my @new = $self->new_pkgs;
+    cp $spec->tarball, "$dir";
 
-        next unless $self->recursive;
+    $rpm_opts .= " --define '$_ $dir'"
+        for qw{ _sourcedir _builddir _srcrpmdir _rpmdir };
 
-        ### $ret
-        ### @new
-
-        my $tree = $self->_pretty_dep_tree($rpm_name, $ret);
-        print "For $pkg ($dist), we generated " . @new . " new srpms.\n\n";
-
-        print "These packages are dependent on each other as:\n\n$tree\n\n";
-    }
+    # From Fedora CVS Makefile.common.
+    $self->log->warn('running rpmbuild...');
+    system "rpmbuild $rpm_opts $specfile";
 
     return;
 }
 
-sub _new_spec {
-    my ($self, $mm) = @_;
+#############################################################################
+# Generate a new RPM spec
+
+sub new_spec {
+    my ($self, $pkg) = @_;
 
     # build what our rpm name would be
-    #my ($dist, $rpm_name) = $self->_pkg_to_dist($pkg);
-    my ($dist, $rpm_name) = ($mm->name, $mm->rpm_pkg_name);
-    return if $self->_check_if_satisfied($mm);
+    my ($dist, $rpm_name) = $self->pkg_to_dist($pkg);
+    return if $self->check_if_satisfied($rpm_name, $pkg);
 
     $self->log->info("Working on $dist.");
     my $data = $self
@@ -125,25 +116,64 @@ sub _new_spec {
     return keys %children ? \%children : 1;
 }
 
-sub _check_if_satisfied {
-    #my ($self, $rpm_name, $pkg) = @_;
-    my ($self, $mm) = @_;
 
-    #$pkg =~ s/-/::/g; # ugh.
+#############################################################################
+# helper methods
+
+# e.g. perl(Moose::Role) => Moose::Role
+sub strip_rpm_deps { shift; map { s/^perl\(//; s/\)$//; $_ } @_ }
+
+sub dist_to_rpm_pkg_name {
+    my ($self, $dist) = @_;
+
+    # ...
+}
+
+sub pkg_to_dist {
+    my ($self, $pkg) = @_;
+
+    $pkg =~ s/::/-/g;
+    $pkg =~ s/^perl\(//;
+    $pkg =~ s/\)$//;
+
+    my $module = $self->_cpanp->parse_module(module => $pkg);
+    my $dist = $module->package_name;
+    my $rpm_name = "perl-$dist";
+    $self->log->trace("Found dist $dist for $pkg => $rpm_name");
+
+    return ($dist, $rpm_name);
+}
+
+sub check_if_satisfied {
+    my ($self, $rpm_name, $pkg) = @_;
+
+    $pkg =~ s/-/::/g; # ugh.
 
     # first (easiest), check to see if we've built it already
     # then if it's core (no need to build srpm)
     # then, check local system
     # then, check yum
 
-    return 1 if $self->has_new_pkg($mm->rpm_pkg_name);
-    #return 1 if $self->has_as_core($pkg);
-    return 1 if $self->has_as_core($mm->module);
-    return 1 if $self->_rpmdb->find_by_name($mm->rpm_pkg_name);
+    return 1 if $self->has_new_pkg($rpm_name);
+    return 1 if $self->has_as_core($pkg);
+    return 1 if $self->rpmdb->find_by_name($rpm_name);
     return `repoquery $rpm_name` ? 1 : 0;
 }
 
-__PACKAGE__->meta->make_immutable;
+sub pretty_dep_tree {
+    my ($self, $rpm_name, $tree) = @_;
+
+    my $printable = Data::TreeDumper::DumpTree(
+        $tree, $rpm_name,
+        USE_ASCII => 1,
+        DISPLAY_ADDRESS => 0,
+    );
+    $printable =~ s/= 1//g;
+
+    return $printable;
+}
+
+1;
 
 __END__
 

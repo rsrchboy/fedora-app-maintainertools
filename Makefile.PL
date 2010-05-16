@@ -7,6 +7,9 @@ all_from 'lib/Fedora/App/MaintainerTools.pm';
 author   'Chris Weyl <cweyl@alumni.drew.edu>';
 license  'perl';
 
+readme_from 'lib/Fedora/App/MaintainerTools.pm';
+readme_markdown_from 'lib/Fedora/App/MaintainerTools.pm';
+
 requires_external_bin 'rpm';
 requires_external_bin 'createrepo';
 
@@ -27,8 +30,8 @@ requires 'MooseX::Types::Path::Class';
 requires 'MooseX::Types::URI';
 
 requires 'CPAN::Easy';
-requires 'CPAN::Easy::TraitFor::RPMInfo';
 requires 'CPAN::MetaMuncher';
+requires 'CPAN::MetaMuncher::TraitFor::RPMInfo';
 
 requires 'Data::TreeDumper';
 requires 'DateTime';
@@ -43,9 +46,6 @@ requires 'YAML::Tiny';
 requires 'Pod::POM';
 requires 'Pod::POM::View::Text';
 requires 'Software::LicenseUtils';
-
-# metamuncher
-requires 'JSON';
 
 # for ftbfs, etc
 requires 'Fedora::Bugzilla' => '0.13';
